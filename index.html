@@ -1863,9 +1863,16 @@
 
     // ── TẢI DỮ LIỆU ──
     function loadData() {
-      var token = '';
-      try { token = localStorage.getItem('misa_session_token') || ''; } catch(e) {}
-      // Luôn dùng window.google.script.run (fetch polyfill) — nhất quán trên mọi thiết bị
+      // 1. Tải TỨC THÌ từ bộ nhớ đệm (Cache) để giảm cảm giác giật lag
+      try {
+        let cached = localStorage.getItem('misa_app_data_cache');
+        if (cached) {
+          appData = JSON.parse(cached);
+          if (appData && appData.taiKhoan) renderAll();
+        }
+      } catch(e) {}
+
+      // 2. Đồng bộ ngầm với máy chủ để lấy dữ liệu mới nhất
       window.google.script.run
         .withSuccessHandler(onDataLoaded)
         .withFailureHandler(function(e) { 
@@ -2947,6 +2954,7 @@
 
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         const payload = {
+          id: newTx.id, // ID duy nhất do Client tạo, dùng để chống trùng lặp trên Server
           type: type, loai: type,
           amount: amount, sotien: amount,
           category: currentCategory, hm: currentCategory, hangMuc: currentCategory,
