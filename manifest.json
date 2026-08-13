@@ -1,0 +1,22 @@
+{
+  "name": "MISA ANTI",
+  "short_name": "MISA ANTI",
+  "description": "Quản lý Tài chính Cá nhân",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0e1726",
+  "theme_color": "#0e1726",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5836/5836262.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5836/5836262.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
