@@ -296,7 +296,15 @@
                 if (failureCb) failureCb(new Error("Không có mạng"));
                 return;
               }
-              const token = localStorage.getItem('misa_session_token');
+              // Dùng session token nếu có, fallback sang auth token (PIN hash vĩnh viễn)
+              var token = '';
+              try {
+                token = localStorage.getItem('misa_session_token') || localStorage.getItem('misa_auth_token') || '';
+                if (!token) {
+                  var match = document.cookie.match(/(?:^|; )misa_auth_token=([^;]*)/);
+                  if (match) token = match[1];
+                }
+              } catch(e) {}
               fetch(GAS_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: action, args: args, token: token }),
@@ -307,9 +315,27 @@
                   if (res.success) { if (successCb) successCb(res.data); }
                   else {
                     if (res.error && res.error.includes("Unauthorized")) {
-                      localStorage.removeItem('misa_session_token');
-                      alert("Phiên đăng nhập không hợp lệ hoặc đã bị thu hồi. Vui lòng tải lại trang để đăng nhập lại.");
-                      location.reload();
+                      // Token hết hạn: CHỈ xóa session token, giữ lại PIN token
+                      try {
+                        localStorage.removeItem('misa_session_token');
+                        // KHÔNG XÓA misa_auth_token để tránh bắt nhập PIN lại nếu không cần thiết
+                      } catch(e) {}
+                      // Hiện lại lock screen (vẫn còn trong DOM)
+                      let lk = document.getElementById('pin-lock-screen');
+                      if (lk) {
+                        lk.style.display = ''; lk.style.opacity = '1'; lk.style.visibility = 'visible';
+                        if (typeof isOTPMode !== 'undefined') isOTPMode = false;
+                        if (typeof otpSent !== 'undefined') otpSent = false;
+                        if (typeof currentPin !== 'undefined') { currentPin = ''; updatePinDots(); }
+                        // Xóa link resend nếu có
+                        const resend = document.getElementById('resend-link');
+                        if (resend) resend.remove();
+                        const msgEl = document.getElementById('pin-msg');
+                        if (msgEl) { msgEl.textContent = 'Phiên hết hạn. Nhập lại mã PIN.'; msgEl.className = 'text-gray-400 text-sm mt-1 text-limit-orange'; }
+                      } else {
+                        location.reload();
+                      }
+                      return;
                     }
                     if (failureCb) failureCb(new Error(res.error));
                   }
@@ -347,7 +373,12 @@
           document.write('<style>#pin-lock-screen { display: none !important; }</style>');
           return;
         }
-        var saved = localStorage.getItem('misa_auth_token') || '';
+        var saved = '';
+        try { saved = localStorage.getItem('misa_auth_token') || ''; } catch(e){}
+        if (!saved) {
+          var match = document.cookie.match(/(?:^|; )misa_auth_token=([^;]*)/);
+          if (match) saved = match[1];
+        }
         if (saved === '1b21fbae4f674798eb188547b6e5f84a8bc1b047c61f2f2743901e40c17dc0b6') {
           document.write('<style>#pin-lock-screen { display: none !important; }</style>');
         }
@@ -377,7 +408,10 @@
       <div class="pin-dot"></div>
     </div>
 
-    <!-- Keypad -->
+    <!-- OTP Input Area (ẩn mặc định) -->
+    <div id="otp-area" class="hidden flex items-center justify-center mb-12 space-x-3"></div>
+
+
     <div class="grid grid-cols-3 gap-6 max-w-[280px]">
       <div class="pin-key" onclick="pressPin('1')">1</div>
       <div class="pin-key" onclick="pressPin('2')">2</div>
@@ -1728,7 +1762,7 @@
       // Server-side auth check (For iOS Safari ITP bypass)
       if (typeof isPreAuthServer !== 'undefined' && isPreAuthServer) {
         try { localStorage.setItem('misa_auth_token', CORRECT_PIN_HASH); } catch (e) { }
-        if (lock) lock.remove();
+        if (lock) lock.style.display = 'none';
         loadData();
         return;
       }
@@ -1737,16 +1771,24 @@
       var m = window.location.search.match(/[?&](?:pin|auth|key)=([^&]*)/);
       if (m && m[1] === '211174') {
         try { localStorage.setItem('misa_auth_token', CORRECT_PIN_HASH); } catch (e) { }
-        if (lock) lock.remove();
+        if (lock) lock.style.display = 'none';
         loadData();
         return;
       }
 
       // Fallback: kiểm tra localStorage (Android/PC đã đăng nhập trước đó)
       var saved = '';
-      try { saved = localStorage.getItem('misa_auth_token') || ''; } catch (e) { }
-      if (saved === CORRECT_PIN_HASH) {
-        if (lock) lock.remove();
+      var otpToken = '';
+      try { 
+        saved = localStorage.getItem('misa_auth_token') || ''; 
+        if (!saved) {
+          var match = document.cookie.match(/(?:^|; )misa_auth_token=([^;]*)/);
+          if (match) saved = match[1];
+        }
+        otpToken = localStorage.getItem('misa_session_token') || '';
+      } catch (e) { }
+      if (saved === CORRECT_PIN_HASH || otpToken) {
+        if (lock) lock.style.display = 'none';
         loadData();
         return;
       }
@@ -1821,14 +1863,16 @@
 
     // ── TẢI DỮ LIỆU ──
     function loadData() {
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(onDataLoaded)
-          .withFailureHandler(e => showToast(e.message, 'error'))
-          .getAppData();
-      } else {
-        onDataLoaded({ taiKhoan: MOCK.taiKhoan, hanMuc: MOCK.hanMuc, giaoDich: MOCK.giaoDich });
-      }
+      var token = '';
+      try { token = localStorage.getItem('misa_session_token') || ''; } catch(e) {}
+      // Luôn dùng window.google.script.run (fetch polyfill) — nhất quán trên mọi thiết bị
+      window.google.script.run
+        .withSuccessHandler(onDataLoaded)
+        .withFailureHandler(function(e) { 
+          showToast('Lỗi tải dữ liệu: ' + e.message, 'error'); 
+          console.error("loadData error:", e);
+        })
+        .getAppData();
     }
 
 
@@ -3098,13 +3142,22 @@
     // KEYBOARD SUPPORT FOR PIN
     document.addEventListener('keydown', function (e) {
       var lock = document.getElementById('pin-lock-screen');
-      if (lock && lock.style.display !== 'none' && !lock.classList.contains('hidden')) {
+      if (lock && lock.style.display !== 'none' && !lock.classList.contains('hidden') && !isOTPMode) {
         if (/^[0-9]$/.test(e.key)) pressPin(e.key);
         else if (e.key === 'Backspace') pressPin('back');
       }
     });
 
     function pressPin(val) {
+      if (isOTPMode) {
+        // Dùng lại chính xác bàn phím PIN, lưu vào currentPin
+        if (val === 'back') currentPin = currentPin.slice(0, -1);
+        else if (currentPin.length < 6) currentPin += val;
+        updatePinDots();
+        // Tự động gửi OTP khi nhập đủ 6 số
+        if (currentPin.length === 6) setTimeout(submitOTP, 80);
+        return;
+      }
       var msgEl = document.getElementById('pin-msg');
       if (msgEl && msgEl.textContent !== 'Nhập mã PIN để tiếp tục') {
         msgEl.textContent = 'Nhập mã PIN để tiếp tục';
@@ -3124,21 +3177,39 @@
 
     function updatePinDots() {
       document.querySelectorAll('.pin-dot').forEach((dot, i) => {
-        dot.classList.toggle('filled', i < currentPin.length);
+        if (isOTPMode) {
+          // Chế độ OTP: hiện số thật thành ký tự trong mỗi chấm
+          const ch = currentPin[i] || '';
+          dot.textContent = ch;
+          dot.style.fontSize = ch ? '20px' : '';
+          dot.style.display = 'flex';
+          dot.style.alignItems = 'center';
+          dot.style.justifyContent = 'center';
+          dot.classList.toggle('filled', !!ch);
+        } else {
+          dot.textContent = '';
+          dot.style.fontSize = '';
+          dot.classList.toggle('filled', i < currentPin.length);
+        }
       });
     }
 
     async function verifyPin() {
       const inputHash = await hashPin(currentPin);
       if (inputHash === CORRECT_PIN_HASH) {
-        const token = localStorage.getItem('misa_session_token');
-        if (token) {
-          // Nếu đã có token phiên bản trước, thử dùng luôn (backend sẽ báo lỗi nếu không hợp lệ)
+        // Lưu trạng thái đã nhập PIN đúng vào localStorage để các lần sau bỏ qua màn hình khóa
+        try { 
+          localStorage.setItem('misa_auth_token', CORRECT_PIN_HASH); 
+          document.cookie = "misa_auth_token=" + CORRECT_PIN_HASH + ";max-age=31536000;path=/;SameSite=Lax";
+        } catch(e) {}
+        const otpToken = localStorage.getItem('misa_session_token') || '';
+        if (otpToken) {
+          // Đã có OTP token → vào thẳng app
           const lock = document.getElementById('pin-lock-screen');
           if (lock) { lock.style.opacity = '0'; lock.style.visibility = 'hidden'; setTimeout(() => { lock.remove(); }, 300); }
           loadData();
         } else {
-          // Chưa có token -> Yêu cầu OTP qua email
+          // Chưa có OTP token → chỉ hỏi OTP lần đầu
           requestOTPFlow(currentPin);
         }
       } else {
@@ -3155,7 +3226,14 @@
       }
     }
 
+    let otpSent = false;
+    let isOTPMode = false;
+    let currentOTPPin = '';
+    let currentOTPInput = '';
     function requestOTPFlow(rawPin) {
+      if (otpSent) return; // Khóa không cho gọi lại
+      otpSent = true;
+      currentOTPPin = rawPin; // Lưu PIN để dùng cho resend
       const msgEl = document.getElementById('pin-msg');
       msgEl.textContent = 'Đang gửi mã OTP đến Email...';
       msgEl.classList.remove('text-expense-red');
@@ -3176,7 +3254,7 @@
         .then(res => res.json())
         .then(res => {
           if (res.success) {
-            msgEl.textContent = 'Đã gửi mã OTP! Vui lòng kiểm tra Email.';
+            msgEl.textContent = (res.data && res.data.message) ? res.data.message : 'Đã gửi mã OTP! Vui lòng kiểm tra Email.';
             msgEl.classList.remove('text-limit-orange');
             msgEl.classList.add('text-income-green');
             showOTPInput();
@@ -3194,23 +3272,35 @@
     }
 
     function showOTPInput() {
-      const container = document.getElementById('pin-dots-container');
-      container.innerHTML = `
-    <input type="text" id="otp-input" placeholder="Nhập 6 số" class="bg-dark-input text-center text-xl font-bold py-3 rounded-xl text-white outline-none tracking-widest w-32" maxlength="6">
-    <button onclick="submitOTP()" class="ml-3 bg-accent-blue px-5 py-3 rounded-xl font-bold active:scale-95 transition">Xác nhận</button>
-  `;
-      // Hide keypad
-      const keypad = document.querySelector('.grid.grid-cols-3');
-      if (keypad) keypad.style.display = 'none';
+      // Dùng lại bàn phím PIN hiện tại — không thêm UI mới để tránh lỗi iOS
+      // Chỉ đổi trạng thái và thông báo
+      isOTPMode = true;
+      currentPin = ''; // Reset để nhập OTP mới
+      updatePinDots();
+
+      const msgEl = document.getElementById('pin-msg');
+      if (msgEl) {
+        msgEl.textContent = 'Nhập 6 số OTP từ Email';
+        msgEl.classList.remove('text-limit-orange', 'text-expense-red');
+        msgEl.classList.add('text-income-green');
+      }
+
+      // Thêm link Gửi lại (chỉ thêm 1 lần)
+      if (!document.getElementById('resend-link')) {
+        const resendLink = document.createElement('p');
+        resendLink.id = 'resend-link';
+        resendLink.className = 'text-xs text-gray-400 mt-2';
+        resendLink.innerHTML = 'Không nhận được mã? <span onclick="resendOTP()" class="text-accent-blue cursor-pointer underline">Gửi lại OTP</span>';
+        if (msgEl && msgEl.parentNode) msgEl.parentNode.insertBefore(resendLink, msgEl.nextSibling);
+      }
     }
 
     function submitOTP() {
-      const otpVal = document.getElementById('otp-input').value;
+      const otpVal = currentPin; // Dùng currentPin (bàn phím PIN tái sử dụng)
       const msgEl = document.getElementById('pin-msg');
 
-      if (otpVal.length !== 6) {
-        msgEl.textContent = 'Vui lòng nhập đủ 6 số OTP.';
-        msgEl.classList.add('text-expense-red');
+      if (!otpVal || otpVal.length !== 6 || !/^\d{6}$/.test(otpVal)) {
+        if (msgEl) { msgEl.textContent = 'Vui lòng nhập đủ 6 số OTP.'; msgEl.classList.add('text-expense-red'); }
         return;
       }
 
@@ -3227,12 +3317,47 @@
         .then(res => {
           if (res.success) {
             const token = res.data.token;
-            localStorage.setItem('misa_session_token', token);
+            // Lưu cả 2 token: OTP token (để xác thực API) và auth token (để skip màn hình khóa lần sau)
+            try {
+              localStorage.setItem('misa_session_token', token);
+              localStorage.setItem('misa_auth_token', CORRECT_PIN_HASH);
+              document.cookie = "misa_auth_token=" + CORRECT_PIN_HASH + ";max-age=31536000;path=/;SameSite=Lax";
+            } catch(e) {}
             const lock = document.getElementById('pin-lock-screen');
-            if (lock) { lock.style.opacity = '0'; lock.style.visibility = 'hidden'; setTimeout(() => { lock.remove(); }, 300); }
+            if (lock) { lock.style.opacity = '0'; lock.style.visibility = 'hidden'; setTimeout(() => { lock.style.display = 'none'; lock.style.opacity = ''; lock.style.visibility = ''; }, 300); }
             loadData();
           } else {
             msgEl.textContent = 'Lỗi: ' + res.error;
+            msgEl.classList.add('text-expense-red');
+          }
+        })
+        .catch(err => {
+          msgEl.textContent = 'Lỗi kết nối: ' + err.message;
+          msgEl.classList.add('text-expense-red');
+        });
+    }
+
+    function resendOTP() {
+      const msgEl = document.getElementById('pin-msg');
+      msgEl.textContent = 'Đang gửi lại mã OTP...';
+      msgEl.classList.remove('text-expense-red', 'text-income-green');
+      msgEl.classList.add('text-limit-orange');
+
+      fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'resendOTP', pin: currentOTPPin }),
+        headers: { 'Content-Type': 'text/plain' }
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (res.success) {
+            currentPin = '';
+            updatePinDots();
+            msgEl.textContent = 'Mã OTP mới đã gửi! Nhập 6 số OTP từ Email.';
+            msgEl.classList.remove('text-limit-orange');
+            msgEl.classList.add('text-income-green');
+          } else {
+            msgEl.textContent = 'Lỗi gửi lại: ' + res.error;
             msgEl.classList.add('text-expense-red');
           }
         })
@@ -3263,7 +3388,7 @@
             try { localStorage.setItem('misa_auth_token', CORRECT_PIN_HASH); } catch (e) { }
             document.cookie = "misa_auth_token=" + CORRECT_PIN_HASH + ";max-age=31536000;path=/;SameSite=Lax";
             const lock = document.getElementById('pin-lock-screen');
-            if (lock) { lock.style.opacity = '0'; lock.style.visibility = 'hidden'; setTimeout(() => { lock.remove(); }, 300); }
+            if (lock) { lock.style.opacity = '0'; lock.style.visibility = 'hidden'; setTimeout(() => { lock.style.display = 'none'; lock.style.opacity = ''; lock.style.visibility = ''; }, 300); }
           }
         } else {
           const cred = await navigator.credentials.create({
@@ -3283,7 +3408,7 @@
             } catch (e) { }
             document.cookie = "misa_auth_token=" + CORRECT_PIN_HASH + ";max-age=31536000;path=/;SameSite=Lax";
             const lock = document.getElementById('pin-lock-screen');
-            if (lock) { lock.style.opacity = '0'; lock.style.visibility = 'hidden'; setTimeout(() => { lock.remove(); }, 300); }
+            if (lock) { lock.style.opacity = '0'; lock.style.visibility = 'hidden'; setTimeout(() => { lock.style.display = 'none'; lock.style.opacity = ''; lock.style.visibility = ''; }, 300); }
             showToast('Thiết lập Face ID thành công!', 'success');
           }
         }
