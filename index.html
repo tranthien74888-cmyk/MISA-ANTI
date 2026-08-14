@@ -1956,6 +1956,9 @@
         });
       }
 
+      // ── SAVE CACHE HERE ──
+      try { localStorage.setItem('misa_app_data_cache', JSON.stringify(appData)); } catch(e) {}
+
       renderAll();
     }
 
@@ -2922,7 +2925,16 @@
         btnSave.classList.add('opacity-70', 'pointer-events-none');
       }
 
+      // Lấy ngày do user chọn (nếu có), mặc định là hôm nay
       const now = new Date();
+      const dateInput = document.getElementById('transaction-date-input')?.value;
+      if (dateInput) {
+        const parts = dateInput.split('-');
+        if (parts.length === 3) {
+          now.setFullYear(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        }
+      }
+
       const catInfo = (CATS[type] || []).find(c => c.name === currentCategory) || {};
       const newTx = {
         id: Date.now().toString(),
