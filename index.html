@@ -515,7 +515,7 @@
     };
 
     // Khai báo các hàm backend có sẵn để Adapter bắt được
-    const apiMethods = ['getAppData', 'addTransaction', 'editTransaction', 'deleteTransaction', 'addAccount', 'editAccount', 'deleteAccount', 'saveCategory', 'deleteCategory', 'updateLimits', 'saveTransfer'];
+    const apiMethods = ['getAppData', 'addTransaction', 'editTransaction', 'updateTransaction', 'deleteTransaction', 'addAccount', 'editAccount', 'updateAccount', 'deleteAccount', 'saveCategory', 'deleteCategory', 'updateLimits', 'updateLimit', 'saveTransfer'];
     apiMethods.forEach(method => {
       window.google.script.run[method] = function (...args) {
         let runner = { _onSuccess: this._onSuccess, _onFailure: this._onFailure };
