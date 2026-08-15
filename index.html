@@ -259,15 +259,16 @@
     }
 
     body.theme-silver {
-      --bg-main: conic-gradient(from 0deg at 50% 50%, #e0e0e0 0%, #ffffff 15%, #c0c0c0 35%, #ffffff 50%, #e0e0e0 60%, #ffffff 75%, #c0c0c0 85%, #ffffff 100%);
-      --bg-card: rgba(255, 255, 255, 0.75);
-      --bg-card-border: rgba(255, 255, 255, 0.6);
-      --bg-input: rgba(228, 230, 235, 0.8);
+      --bg-main: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 55%),
+                 conic-gradient(from 15deg at 50% 50%, #eaeaea 0deg, #ffffff 35deg, #dcdcdc 75deg, #ffffff 120deg, #eaeaea 165deg, #ffffff 210deg, #dcdcdc 260deg, #ffffff 310deg, #eaeaea 360deg);
+      --bg-card: rgba(255, 255, 255, 0.65);
+      --bg-card-border: rgba(255, 255, 255, 1);
+      --bg-input: rgba(228, 230, 235, 0.7);
       --text-main: #1a1d20;
       --text-sub: #5c5e62;
-      --nav-bg: rgba(240, 240, 240, 0.95);
-      --nav-border: rgba(255, 255, 255, 0.3);
-      --pin-key-bg: rgba(0, 0, 0, 0.05);
+      --nav-bg: rgba(250, 250, 250, 0.95);
+      --nav-border: rgba(255, 255, 255, 1);
+      --pin-key-bg: rgba(0, 0, 0, 0.04);
     }
 
     body.theme-white {
@@ -282,10 +283,23 @@
       --pin-key-bg: rgba(0, 0, 0, 0.05);
     }
 
-    body.theme-silver, body.theme-white {
+    body.theme-white {
       background: var(--bg-main) !important;
-      background-attachment: fixed !important;
       color: var(--text-main) !important;
+    }
+
+    body.theme-silver {
+      background: transparent !important;
+      color: var(--text-main) !important;
+    }
+
+    body.theme-silver::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg-main) !important;
+      z-index: -1;
+      pointer-events: none;
     }
 
     body.theme-silver .text-white, body.theme-white .text-white {
@@ -339,7 +353,6 @@
 
     body.theme-silver #pin-lock-screen, body.theme-white #pin-lock-screen {
       background: var(--bg-main) !important;
-      background-attachment: fixed !important;
     }
 
     body.theme-silver .pin-key, body.theme-white .pin-key {
