@@ -1,4 +1,4 @@
-const CACHE_NAME = 'misa-anti-cache-v1';
+const CACHE_NAME = 'misa-anti-cache-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -47,18 +47,22 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Nếu lấy được từ mạng, lưu vào cache (tùy chọn)
         return response;
       })
-      .catch(() => {
+      .catch(async () => {
         // Mất mạng, trả về từ Cache
-        return caches.match(event.request).then(response => {
-           if (response) return response;
-           // Nếu không có trong cache, trả về index.html (để làm SPA offline fallback)
-           if (event.request.url.includes('.html') || event.request.url === self.registration.scope) {
-             return caches.match('./index.html');
-           }
-        });
+        const cachedResponse = await caches.match(event.request);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        
+        // Nếu không có trong cache, fallback về trang chủ (index.html)
+        const fallbackResponse = await caches.match('./index.html');
+        if (fallbackResponse) {
+          return fallbackResponse;
+        }
+        
+        return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
       })
   );
 });
