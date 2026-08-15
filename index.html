@@ -259,18 +259,21 @@
     }
 
     body.theme-silver {
-      --brushed-metal: repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 2px, transparent 2px, transparent 12px),
-                       repeating-linear-gradient(0deg, rgba(255,255,255,0.5) 0px, rgba(255,255,255,0.5) 2px, transparent 2px, transparent 18px),
-                       linear-gradient(90deg, #d1d5db 0%, #ffffff 25%, #c1c7ce 50%, #ffffff 75%, #d1d5db 100%);
-      --bg-main: #e0e5ec;
-      --bg-card: var(--brushed-metal);
-      --bg-card-border: rgba(255,255,255,0.8);
-      --bg-input: #e0e5ec;
-      --text-main: #2d3436;
-      --text-sub: #636e72;
-      --nav-bg: #e0e5ec;
-      --nav-border: transparent;
-      --pin-key-bg: #e0e5ec;
+      --brushed-metal-dense: repeating-linear-gradient(0deg, rgba(0,0,0,0.08) 0px, rgba(0,0,0,0.08) 2px, transparent 2px, transparent 5px),
+                             repeating-linear-gradient(0deg, rgba(255,255,255,0.6) 0px, rgba(255,255,255,0.6) 2px, transparent 2px, transparent 4px),
+                             linear-gradient(90deg, #8f9aa6 0%, #ffffff 20%, #aeb6c1 50%, #ffffff 80%, #8f9aa6 100%);
+      
+      --smooth-metal: linear-gradient(90deg, #e4e7eb 0%, #ffffff 30%, #f0f2f5 50%, #ffffff 70%, #e4e7eb 100%);
+
+      --bg-main: var(--brushed-metal-dense);
+      --bg-card: var(--smooth-metal);
+      --bg-card-border: rgba(255,255,255,1);
+      --bg-input: #ffffff;
+      --text-main: #1a1d20;
+      --text-sub: #5c5e62;
+      --nav-bg: var(--smooth-metal);
+      --nav-border: rgba(255, 255, 255, 1);
+      --pin-key-bg: var(--smooth-metal);
     }
 
     body.theme-white {
@@ -991,7 +994,7 @@
           <div class="flex justify-between items-center py-1">
             <span class="text-gray-400 text-sm">Tác giả</span>
             <span class="text-white text-sm font-semibold">MISA ANTI <span
-                class="text-xs text-income-green ml-1">v4.2</span></span>
+                class="text-xs text-income-green ml-1">v4.3</span></span>
           </div>
         </div>
       </div>
