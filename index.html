@@ -242,6 +242,109 @@
         max-width: 100%;
       }
     }
+
+    /* =========================================
+       THEMES (Bạc, Trắng)
+       ========================================= */
+    :root {
+      --bg-main: #0e1726;
+      --bg-card: rgba(27, 46, 75, 0.85);
+      --bg-card-border: rgba(255, 255, 255, 0.06);
+      --bg-input: #0d1f35;
+      --text-main: #ffffff;
+      --text-sub: #9ca3af;
+      --nav-bg: rgba(27, 46, 75, 0.97);
+      --nav-border: rgba(255, 255, 255, 0.07);
+      --pin-key-bg: rgba(255, 255, 255, 0.05);
+    }
+
+    body.theme-silver {
+      --bg-main: #f0f2f5;
+      --bg-card: rgba(255, 255, 255, 0.9);
+      --bg-card-border: rgba(0, 0, 0, 0.05);
+      --bg-input: #e4e6eb;
+      --text-main: #1a1d20;
+      --text-sub: #65676b;
+      --nav-bg: rgba(255, 255, 255, 0.95);
+      --nav-border: rgba(0, 0, 0, 0.08);
+      --pin-key-bg: rgba(0, 0, 0, 0.05);
+    }
+
+    body.theme-white {
+      --bg-main: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-border: rgba(0, 0, 0, 0.1);
+      --bg-input: #f0f2f5;
+      --text-main: #000000;
+      --text-sub: #555555;
+      --nav-bg: rgba(255, 255, 255, 0.98);
+      --nav-border: rgba(0, 0, 0, 0.1);
+      --pin-key-bg: rgba(0, 0, 0, 0.05);
+    }
+
+    body.theme-silver, body.theme-white {
+      background-color: var(--bg-main) !important;
+      color: var(--text-main) !important;
+    }
+
+    body.theme-silver .text-white, body.theme-white .text-white {
+      color: var(--text-main) !important;
+    }
+
+    body.theme-silver .bg-accent-blue .text-white,
+    body.theme-white .bg-accent-blue .text-white,
+    body.theme-silver .bg-income-green .text-white,
+    body.theme-white .bg-income-green .text-white,
+    body.theme-silver .bg-expense-red .text-white,
+    body.theme-white .bg-expense-red .text-white,
+    body.theme-silver .bg-blue-500 .text-white, body.theme-white .bg-blue-500 .text-white,
+    body.theme-silver .bg-blue-600 .text-white, body.theme-white .bg-blue-600 .text-white,
+    body.theme-silver .bg-purple-600 .text-white, body.theme-white .bg-purple-600 .text-white,
+    body.theme-silver .bg-limit-orange .text-white, body.theme-white .bg-limit-orange .text-white,
+    body.theme-silver .pin-key, body.theme-white .pin-key {
+      color: #ffffff !important;
+    }
+
+    body.theme-silver .text-gray-400, body.theme-white .text-gray-400,
+    body.theme-silver .text-gray-300, body.theme-white .text-gray-300,
+    body.theme-silver .text-gray-500, body.theme-white .text-gray-500 {
+      color: var(--text-sub) !important;
+    }
+
+    body.theme-silver .card-glass, body.theme-white .card-glass {
+      background: var(--bg-card) !important;
+      border-color: var(--bg-card-border) !important;
+    }
+
+    body.theme-white .card-glass {
+      box-shadow: none !important;
+    }
+
+    body.theme-silver .bg-dark-input, body.theme-white .bg-dark-input,
+    body.theme-silver .bg-dark-card, body.theme-white .bg-dark-card {
+      background-color: var(--bg-input) !important;
+    }
+
+    body.theme-silver #bottom-nav, body.theme-white #bottom-nav {
+      background: var(--nav-bg) !important;
+      border-top-color: var(--nav-border) !important;
+    }
+
+    body.theme-silver #pin-lock-screen, body.theme-white #pin-lock-screen {
+      background-color: var(--bg-main) !important;
+    }
+
+    body.theme-silver .pin-key, body.theme-white .pin-key {
+      background: var(--pin-key-bg) !important;
+    }
+    
+    body.theme-silver #transaction-desc, body.theme-white #transaction-desc {
+      color: var(--text-main) !important;
+    }
+    
+    body.theme-silver .border-gray-700, body.theme-white .border-gray-700 {
+      border-color: rgba(0,0,0,0.1) !important;
+    }
   </style>
 
   <script>
@@ -756,6 +859,23 @@
       <h1 class="text-lg font-bold mb-4">Cài đặt & Khác</h1>
 
       <div class="space-y-3">
+        <div class="card-glass rounded-2xl p-5">
+          <h3 class="font-semibold mb-3 text-gray-400 text-xs uppercase tracking-wider">Giao diện</h3>
+          <div class="flex justify-between items-center py-1">
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                  <i class="fa-solid fa-palette text-white text-sm"></i>
+                </div>
+                <span class="font-medium">Chủ đề màu</span>
+            </div>
+            <select id="theme-selector" onchange="changeTheme(this.value)" class="bg-dark-input text-gray-300 text-sm px-3 py-1.5 rounded-lg focus:outline-none cursor-pointer border-none font-medium appearance-none" style="text-align-last: right; padding-right: 1.5rem; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239CA3AF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 0.65em auto;">
+              <option value="dark">Xanh đen</option>
+              <option value="silver">Bạc</option>
+              <option value="white">Trắng</option>
+            </select>
+          </div>
+        </div>
+
         <div class="card-glass rounded-2xl p-5">
           <h3 class="font-semibold mb-3 text-gray-400 text-xs uppercase tracking-wider">Danh mục</h3>
           <div class="space-y-3">
@@ -5178,6 +5298,27 @@
       }
       return null;
     }
+
+    // --- Theme System ---
+    window.changeTheme = function(theme) {
+      document.body.classList.remove('theme-silver', 'theme-white');
+      if (theme !== 'dark') {
+        document.body.classList.add('theme-' + theme);
+      }
+      localStorage.setItem('misa_theme', theme);
+    };
+
+    function loadSavedTheme() {
+      const savedTheme = localStorage.getItem('misa_theme') || 'dark';
+      changeTheme(savedTheme);
+      // Wait for DOM to be ready to set the select value
+      setTimeout(() => {
+        const selector = document.getElementById('theme-selector');
+        if (selector) selector.value = savedTheme;
+      }, 0);
+    }
+    
+    loadSavedTheme();
 
   </script>
 </body>
