@@ -346,11 +346,17 @@
       box-shadow: none !important;
     }
 
-    body.theme-white .bg-dark-input, body.theme-white .bg-dark-card {
+    body.theme-white .bg-dark-bg, body.theme-white [class*="bg-[#111827]"] {
+      background-color: transparent !important;
+    }
+    body.theme-white .bg-dark-input, body.theme-white .bg-dark-card, body.theme-white [class*="bg-[#1f2937]"], body.theme-white [class*="bg-[#1a2c4e]"] {
       background-color: var(--bg-input) !important;
     }
 
-    body.theme-silver .bg-dark-input, body.theme-silver .bg-dark-card {
+    body.theme-silver .bg-dark-bg, body.theme-silver [class*="bg-[#111827]"] {
+      background-color: transparent !important;
+    }
+    body.theme-silver .bg-dark-input, body.theme-silver .bg-dark-card, body.theme-silver [class*="bg-[#1f2937]"], body.theme-silver [class*="bg-[#1a2c4e]"] {
       background: var(--bg-input) !important;
       box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.6), inset -4px -4px 8px rgba(255, 255, 255, 0.5) !important;
       border: none !important;
