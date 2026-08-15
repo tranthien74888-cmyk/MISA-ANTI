@@ -4838,16 +4838,21 @@
       }
 
       showLoading();
+      // Fallback: tự ẩn spinner sau 30 giây nếu backend không phản hồi
+      const _transferTimeout = setTimeout(() => { hideLoading(); showToast('Hết thời gian chờ. Kiểm tra kết nối mạng.', 'error'); }, 30000);
       if (typeof google !== 'undefined' && google.script) {
         google.script.run.withSuccessHandler(function (res) {
+          clearTimeout(_transferTimeout);
           hideLoading();
           showToast('Chuyển khoản thành công!', 'success');
           renderAll();
           navigateTo('view-accounts');
         }).withFailureHandler(function (e) {
+          clearTimeout(_transferTimeout);
           hideLoading(); showToast('Lỗi: ' + e.message, 'error');
         }).saveTransfer(fromAcc, toAcc, amount, desc);
       } else {
+        clearTimeout(_transferTimeout);
         setTimeout(() => { hideLoading(); showToast('Chuyển khoản thành công (Demo)', 'success'); renderAll(); navigateTo('view-accounts'); }, 500);
       }
     }
@@ -4977,22 +4982,7 @@
       }
     }
 
-    // Override selectAccount to handle transfer selection
-    const originalSelectAccount = selectAccount;
-    selectAccount = function (name, icon, color) {
-      if (!document.getElementById('view-transfer').classList.contains('hidden')) {
-        if (transferPickSide === 'from') {
-          document.getElementById('transfer-from-account').textContent = name;
-        } else {
-          document.getElementById('transfer-to-account').textContent = name;
-          document.getElementById('transfer-to-account').parentElement.previousElementSibling.className = `w-8 h-8 ${color} rounded-lg flex items-center justify-center mr-3`;
-          document.getElementById('transfer-to-account').parentElement.previousElementSibling.innerHTML = `<i class="fa-solid ${icon} text-white text-xs"></i>`;
-        }
-        closeAccountModal();
-      } else {
-        originalSelectAccount(name, icon, color);
-      }
-    };
+    // NOTE: selectAccount override đã được xử lý đầy đủ ở window.selectAccount bên dưới (dòng 5025+)
 
     function swapTransferAccounts() {
       const fromName = document.getElementById('transfer-from-account').textContent;
@@ -5380,6 +5370,9 @@
     }
     
     loadSavedTheme();
+    // Reset spinner state khi app khởi động (tránh spinner “trơ” từ phiên trước)
+    hideLoading();
+
 
   </script>
 </body>
