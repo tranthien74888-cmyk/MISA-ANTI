@@ -1,4 +1,4 @@
-const CACHE_NAME = 'misa-anti-cache-v2';
+const CACHE_NAME = 'misa-anti-cache-v4';
 const urlsToCache = [
   './',
   './index.html',
@@ -41,8 +41,11 @@ self.addEventListener('activate', event => {
 
 // Fetch event (Network First, fallback to Cache)
 self.addEventListener('fetch', event => {
-  // Bỏ qua các POST request (doPost)
+  const url = event.request.url;
+
+  // Bỏ qua POST request (doPost) và tất cả request đến Google domains (GAS API)
   if (event.request.method !== 'GET') return;
+  if (url.includes('script.google.com') || url.includes('googleapis.com') || url.includes('google.com/macros')) return;
 
   event.respondWith(
     fetch(event.request)
