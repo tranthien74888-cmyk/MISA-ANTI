@@ -260,13 +260,13 @@
 
     body.theme-silver {
       --brushed-metal-dense: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.12' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E"),
-                             linear-gradient(120deg, #9ca3af 0%, #cbd5e1 50%, #9ca3af 100%);
-      
+        linear-gradient(120deg, #9ca3af 0%, #cbd5e1 50%, #9ca3af 100%);
+
       --smooth-metal: linear-gradient(90deg, #e4e7eb 0%, #ffffff 30%, #f0f2f5 50%, #ffffff 70%, #e4e7eb 100%);
 
       --bg-main: var(--brushed-metal-dense);
       --bg-card: var(--smooth-metal);
-      --bg-card-border: rgba(255,255,255,1);
+      --bg-card-border: rgba(255, 255, 255, 1);
       --bg-input: #ffffff;
       --text-main: #1a1d20;
       --text-sub: #5c5e62;
@@ -300,13 +300,17 @@
     body.theme-silver::before {
       content: "";
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background: var(--bg-main) !important;
       z-index: -1;
       pointer-events: none;
     }
 
-    body.theme-silver .text-white, body.theme-white .text-white {
+    body.theme-silver .text-white,
+    body.theme-white .text-white {
       color: var(--text-main) !important;
     }
 
@@ -316,21 +320,30 @@
     body.theme-white .bg-income-green .text-white,
     body.theme-silver .bg-expense-red .text-white,
     body.theme-white .bg-expense-red .text-white,
-    body.theme-silver .bg-blue-500 .text-white, body.theme-white .bg-blue-500 .text-white,
-    body.theme-silver .bg-blue-600 .text-white, body.theme-white .bg-blue-600 .text-white,
-    body.theme-silver .bg-purple-600 .text-white, body.theme-white .bg-purple-600 .text-white,
-    body.theme-silver .bg-limit-orange .text-white, body.theme-white .bg-limit-orange .text-white,
-    body.theme-silver .pin-key, body.theme-white .pin-key {
+    body.theme-silver .bg-blue-500 .text-white,
+    body.theme-white .bg-blue-500 .text-white,
+    body.theme-silver .bg-blue-600 .text-white,
+    body.theme-white .bg-blue-600 .text-white,
+    body.theme-silver .bg-purple-600 .text-white,
+    body.theme-white .bg-purple-600 .text-white,
+    body.theme-silver .bg-limit-orange .text-white,
+    body.theme-white .bg-limit-orange .text-white,
+    body.theme-silver .pin-key,
+    body.theme-white .pin-key {
       color: #ffffff !important;
     }
 
-    body.theme-silver .text-gray-400, body.theme-white .text-gray-400,
-    body.theme-silver .text-gray-300, body.theme-white .text-gray-300,
-    body.theme-silver .text-gray-500, body.theme-white .text-gray-500 {
+    body.theme-silver .text-gray-400,
+    body.theme-white .text-gray-400,
+    body.theme-silver .text-gray-300,
+    body.theme-white .text-gray-300,
+    body.theme-silver .text-gray-500,
+    body.theme-white .text-gray-500 {
       color: var(--text-sub) !important;
     }
 
-    body.theme-silver .card-glass, body.theme-white .card-glass {
+    body.theme-silver .card-glass,
+    body.theme-white .card-glass {
       background: var(--bg-card) !important;
       border-color: var(--bg-card-border) !important;
     }
@@ -339,24 +352,34 @@
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
-      border: 1px solid rgba(255,255,255,0.7) !important;
+      border: 1px solid rgba(255, 255, 255, 0.7) !important;
     }
 
     body.theme-white .card-glass {
       box-shadow: none !important;
     }
 
-    body.theme-white .bg-dark-bg, body.theme-white [class*="bg-[#111827]"] {
+    body.theme-white .bg-dark-bg,
+    body.theme-white [class*="bg-[#111827]"] {
       background-color: transparent !important;
     }
-    body.theme-white .bg-dark-input, body.theme-white .bg-dark-card, body.theme-white [class*="bg-[#1f2937]"], body.theme-white [class*="bg-[#1a2c4e]"] {
+
+    body.theme-white .bg-dark-input,
+    body.theme-white .bg-dark-card,
+    body.theme-white [class*="bg-[#1f2937]"],
+    body.theme-white [class*="bg-[#1a2c4e]"] {
       background-color: var(--bg-input) !important;
     }
 
-    body.theme-silver .bg-dark-bg, body.theme-silver [class*="bg-[#111827]"] {
+    body.theme-silver .bg-dark-bg,
+    body.theme-silver [class*="bg-[#111827]"] {
       background-color: transparent !important;
     }
-    body.theme-silver .bg-dark-input, body.theme-silver .bg-dark-card, body.theme-silver [class*="bg-[#1f2937]"], body.theme-silver [class*="bg-[#1a2c4e]"] {
+
+    body.theme-silver .bg-dark-input,
+    body.theme-silver .bg-dark-card,
+    body.theme-silver [class*="bg-[#1f2937]"],
+    body.theme-silver [class*="bg-[#1a2c4e]"] {
       background: var(--bg-input) !important;
       box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.6), inset -4px -4px 8px rgba(255, 255, 255, 0.5) !important;
       border: none !important;
@@ -373,7 +396,8 @@
       box-shadow: 0 -4px 10px rgba(163, 177, 198, 0.4) !important;
     }
 
-    body.theme-silver #pin-lock-screen, body.theme-white #pin-lock-screen {
+    body.theme-silver #pin-lock-screen,
+    body.theme-white #pin-lock-screen {
       background: var(--bg-main) !important;
     }
 
@@ -390,18 +414,21 @@
     body.theme-silver .pin-key:active {
       box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.6), inset -4px -4px 8px rgba(255, 255, 255, 0.5) !important;
     }
-    
-    body.theme-silver #transaction-desc, body.theme-white #transaction-desc {
+
+    body.theme-silver #transaction-desc,
+    body.theme-white #transaction-desc {
       color: var(--text-main) !important;
     }
-    
-    body.theme-silver .border-gray-700, body.theme-white .border-gray-700 {
-      border-color: rgba(0,0,0,0.1) !important;
+
+    body.theme-silver .border-gray-700,
+    body.theme-white .border-gray-700 {
+      border-color: rgba(0, 0, 0, 0.1) !important;
     }
 
     body.theme-silver #btn-add-center {
-      border-color: #d1d6dc !important; /* màu nhôm thay vì viền trắng lóa */
-      box-shadow: 0 4px 15px rgba(30,144,255,0.4), 0 0 10px rgba(0,0,0,0.1) !important;
+      border-color: #d1d6dc !important;
+      /* màu nhôm thay vì viền trắng lóa */
+      box-shadow: 0 4px 15px rgba(30, 144, 255, 0.4), 0 0 10px rgba(0, 0, 0, 0.1) !important;
     }
 
     body.theme-white #btn-add-center {
@@ -434,7 +461,8 @@
 
   <script>
     // ⚠️ QUAN TRỌNG: Dán link Web App (Google Apps Script) mới của anh/chị vào đây
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbywXQLRubDr9lu961iHcYOGx4Gow3ZQ12r1gyp8COxkG7lHxBQhoNjAaZMrwNk0khpsiw/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzSUe_KYX16udRVlABzZg--aV4JBgrnjSNRxgQauV0K-1Y50OpPsEtiQwPuZR75mLB3nQ/exec";
+
 
     // PWA Service Worker Registration
     if ('serviceWorker' in navigator) {
@@ -469,7 +497,7 @@
                   var match = document.cookie.match(/(?:^|; )misa_auth_token=([^;]*)/);
                   if (match) token = match[1];
                 }
-              } catch(e) {}
+              } catch (e) { }
               fetch(GAS_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: action, args: args, token: token }),
@@ -484,7 +512,7 @@
                       try {
                         localStorage.removeItem('misa_session_token');
                         // KHÔNG XÓA misa_auth_token để tránh bắt nhập PIN lại nếu không cần thiết
-                      } catch(e) {}
+                      } catch (e) { }
                       // Hiện lại lock screen (vẫn còn trong DOM)
                       let lk = document.getElementById('pin-lock-screen');
                       if (lk) {
@@ -539,7 +567,7 @@
           return;
         }
         var saved = '';
-        try { saved = localStorage.getItem('misa_auth_token') || ''; } catch(e){}
+        try { saved = localStorage.getItem('misa_auth_token') || ''; } catch (e) { }
         if (!saved) {
           var match = document.cookie.match(/(?:^|; )misa_auth_token=([^;]*)/);
           if (match) saved = match[1];
@@ -925,12 +953,14 @@
           <h3 class="font-semibold mb-3 text-gray-400 text-xs uppercase tracking-wider">Giao diện</h3>
           <div class="flex justify-between items-center py-1">
             <div class="flex items-center">
-                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
-                  <i class="fa-solid fa-palette text-white text-sm"></i>
-                </div>
-                <span class="font-medium">Chủ đề màu</span>
+              <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                <i class="fa-solid fa-palette text-white text-sm"></i>
+              </div>
+              <span class="font-medium">Chủ đề màu</span>
             </div>
-            <select id="theme-selector" onchange="changeTheme(this.value)" class="bg-dark-input text-gray-300 text-sm px-3 py-1.5 rounded-lg focus:outline-none cursor-pointer border-none font-medium appearance-none" style="text-align-last: right; padding-right: 1.5rem; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239CA3AF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 0.65em auto;">
+            <select id="theme-selector" onchange="changeTheme(this.value)"
+              class="bg-dark-input text-gray-300 text-sm px-3 py-1.5 rounded-lg focus:outline-none cursor-pointer border-none font-medium appearance-none"
+              style="text-align-last: right; padding-right: 1.5rem; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239CA3AF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 0.65em auto;">
               <option value="dark">Xanh đen</option>
               <option value="silver">Bạc</option>
               <option value="white">Trắng</option>
@@ -1225,7 +1255,8 @@
           <div class="flex items-center">
             <div
               class="w-8 h-8 bg-transparent border border-dashed border-gray-500 rounded-lg flex items-center justify-center mr-3 text-gray-500">
-              <i class="fa-solid fa-plus text-xs"></i></div>
+              <i class="fa-solid fa-plus text-xs"></i>
+            </div>
             <div>
               <p class="text-gray-400 text-xs">Đến tài khoản</p>
               <p id="transfer-to-account" class="font-medium text-white text-base"></p>
@@ -1961,8 +1992,8 @@
       // Fallback: kiểm tra localStorage (Android/PC đã đăng nhập trước đó)
       var saved = '';
       var otpToken = '';
-      try { 
-        saved = localStorage.getItem('misa_auth_token') || ''; 
+      try {
+        saved = localStorage.getItem('misa_auth_token') || '';
         if (!saved) {
           var match = document.cookie.match(/(?:^|; )misa_auth_token=([^;]*)/);
           if (match) saved = match[1];
@@ -2052,13 +2083,13 @@
           appData = JSON.parse(cached);
           if (appData && appData.taiKhoan) renderAll();
         }
-      } catch(e) {}
+      } catch (e) { }
 
       // 2. Đồng bộ ngầm với máy chủ để lấy dữ liệu mới nhất
       window.google.script.run
         .withSuccessHandler(onDataLoaded)
-        .withFailureHandler(function(e) { 
-          showToast('Lỗi tải dữ liệu: ' + e.message, 'error'); 
+        .withFailureHandler(function (e) {
+          showToast('Lỗi tải dữ liệu: ' + e.message, 'error');
           console.error("loadData error:", e);
         })
         .getAppData();
@@ -2139,7 +2170,7 @@
       }
 
       // ── SAVE CACHE HERE ──
-      try { localStorage.setItem('misa_app_data_cache', JSON.stringify(appData)); } catch(e) {}
+      try { localStorage.setItem('misa_app_data_cache', JSON.stringify(appData)); } catch (e) { }
 
       renderAll();
     }
@@ -3400,10 +3431,10 @@
       const inputHash = await hashPin(currentPin);
       if (inputHash === CORRECT_PIN_HASH) {
         // Lưu trạng thái đã nhập PIN đúng vào localStorage để các lần sau bỏ qua màn hình khóa
-        try { 
-          localStorage.setItem('misa_auth_token', CORRECT_PIN_HASH); 
+        try {
+          localStorage.setItem('misa_auth_token', CORRECT_PIN_HASH);
           document.cookie = "misa_auth_token=" + CORRECT_PIN_HASH + ";max-age=31536000;path=/;SameSite=Lax";
-        } catch(e) {}
+        } catch (e) { }
         const otpToken = localStorage.getItem('misa_session_token') || '';
         if (otpToken) {
           // Đã có OTP token → vào thẳng app
@@ -3524,7 +3555,7 @@
               localStorage.setItem('misa_session_token', token);
               localStorage.setItem('misa_auth_token', CORRECT_PIN_HASH);
               document.cookie = "misa_auth_token=" + CORRECT_PIN_HASH + ";max-age=31536000;path=/;SameSite=Lax";
-            } catch(e) {}
+            } catch (e) { }
             const lock = document.getElementById('pin-lock-screen');
             if (lock) { lock.style.opacity = '0'; lock.style.visibility = 'hidden'; setTimeout(() => { lock.style.display = 'none'; lock.style.opacity = ''; lock.style.visibility = ''; }, 300); }
             loadData();
@@ -5351,7 +5382,7 @@
     }
 
     // --- Theme System ---
-    window.changeTheme = function(theme) {
+    window.changeTheme = function (theme) {
       document.body.classList.remove('theme-silver', 'theme-white');
       if (theme !== 'dark') {
         document.body.classList.add('theme-' + theme);
@@ -5368,7 +5399,7 @@
         if (selector) selector.value = savedTheme;
       }, 0);
     }
-    
+
     loadSavedTheme();
     // Reset spinner state khi app khởi động (tránh spinner “trơ” từ phiên trước)
     hideLoading();
