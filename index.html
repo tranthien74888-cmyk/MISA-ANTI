@@ -4839,8 +4839,7 @@
 
       showLoading();
       if (typeof google !== 'undefined' && google.script) {
-        google.script.run.withSuccessHandler(function (d) {
-          if (d) appData = typeof d === 'string' ? JSON.parse(d) : d;
+        google.script.run.withSuccessHandler(function (res) {
           hideLoading();
           showToast('Chuyển khoản thành công!', 'success');
           renderAll();
