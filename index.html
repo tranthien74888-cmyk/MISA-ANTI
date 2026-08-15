@@ -259,18 +259,18 @@
     }
 
     body.theme-silver {
-      --brushed-metal: repeating-linear-gradient(0deg, rgba(0,0,0,0.08) 0px, rgba(0,0,0,0.08) 2px, transparent 2px, transparent 5px),
-                       repeating-linear-gradient(0deg, rgba(255,255,255,0.6) 0px, rgba(255,255,255,0.6) 2px, transparent 2px, transparent 4px),
-                       linear-gradient(90deg, #8f9aa6 0%, #ffffff 20%, #aeb6c1 50%, #ffffff 80%, #8f9aa6 100%);
-      --bg-main: var(--brushed-metal);
+      --brushed-metal: repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 2px, transparent 2px, transparent 12px),
+                       repeating-linear-gradient(0deg, rgba(255,255,255,0.5) 0px, rgba(255,255,255,0.5) 2px, transparent 2px, transparent 18px),
+                       linear-gradient(90deg, #d1d5db 0%, #ffffff 25%, #c1c7ce 50%, #ffffff 75%, #d1d5db 100%);
+      --bg-main: #e0e5ec;
       --bg-card: var(--brushed-metal);
-      --bg-card-border: rgba(255,255,255,0.5);
-      --bg-input: rgba(0, 0, 0, 0.05);
-      --text-main: #1a1d20;
-      --text-sub: #5c5e62;
-      --nav-bg: var(--brushed-metal);
-      --nav-border: rgba(255, 255, 255, 0.3);
-      --pin-key-bg: var(--brushed-metal);
+      --bg-card-border: rgba(255,255,255,0.8);
+      --bg-input: #e0e5ec;
+      --text-main: #2d3436;
+      --text-sub: #636e72;
+      --nav-bg: #e0e5ec;
+      --nav-border: transparent;
+      --pin-key-bg: #e0e5ec;
     }
 
     body.theme-white {
@@ -334,10 +334,10 @@
     }
 
     body.theme-silver .card-glass {
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
-      border: 1px solid rgba(255,255,255,0.6) !important;
+      border: 1px solid rgba(255,255,255,0.7) !important;
     }
 
     body.theme-white .card-glass {
@@ -350,8 +350,8 @@
 
     body.theme-silver .bg-dark-input, body.theme-silver .bg-dark-card {
       background: var(--bg-input) !important;
-      box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -2px -2px 5px rgba(255,255,255,0.5) !important;
-      border: 1px solid rgba(0,0,0,0.05) !important;
+      box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.6), inset -4px -4px 8px rgba(255, 255, 255, 0.5) !important;
+      border: none !important;
     }
 
     body.theme-white #bottom-nav {
@@ -361,8 +361,8 @@
 
     body.theme-silver #bottom-nav {
       background: var(--nav-bg) !important;
-      border-top: 1px solid rgba(255,255,255,0.3) !important;
-      box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1) !important;
+      border-top: none !important;
+      box-shadow: 0 -4px 10px rgba(163, 177, 198, 0.4) !important;
     }
 
     body.theme-silver #pin-lock-screen, body.theme-white #pin-lock-screen {
@@ -375,12 +375,12 @@
 
     body.theme-silver .pin-key {
       background: var(--pin-key-bg) !important;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
-      border: 1px solid rgba(255,255,255,0.4) !important;
+      box-shadow: 5px 5px 10px rgba(163, 177, 198, 0.6), -5px -5px 10px rgba(255, 255, 255, 0.5) !important;
+      border: none !important;
     }
 
     body.theme-silver .pin-key:active {
-      box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1) !important;
+      box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.6), inset -4px -4px 8px rgba(255, 255, 255, 0.5) !important;
     }
     
     body.theme-silver #transaction-desc, body.theme-white #transaction-desc {
