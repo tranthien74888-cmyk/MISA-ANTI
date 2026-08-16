@@ -4868,6 +4868,22 @@
         if (tTk) tTk.soDu = Number(tTk.soDu) + amount;
       }
 
+      // Optimistic update: Thêm luôn 2 giao dịch vào lịch sử để hiển thị tức thì
+      try {
+        if (!appData.giaoDich) appData.giaoDich = [];
+        const now = new Date();
+        const isoStr = now.toISOString();
+        let dateStr = '';
+        if (typeof formatDateGlobal === 'function') dateStr = formatDateGlobal(now);
+        else dateStr = now.getDate().toString().padStart(2, '0') + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getFullYear();
+
+        const tx1 = { id: 'temp-' + Date.now() + '-1', ngay: dateStr, thu2: 'Hôm nay', loai: 'Chi', hm: 'Chuyển khoản', sotien: amount, tk: fromAcc, ghiChu: 'Chuyển sang ' + toAcc + (desc ? ' • ' + desc : ''), icon: 'fa-exchange-alt', color: 'bg-blue-500', timestamp: isoStr };
+        const tx2 = { id: 'temp-' + Date.now() + '-2', ngay: dateStr, thu2: 'Hôm nay', loai: 'Thu', hm: 'Nhận tiền', sotien: amount, tk: toAcc, ghiChu: 'Nhận từ ' + fromAcc + (desc ? ' • ' + desc : ''), icon: 'fa-exchange-alt', color: 'bg-green-500', timestamp: isoStr };
+        
+        appData.giaoDich.unshift(tx2);
+        appData.giaoDich.unshift(tx1);
+      } catch(e) { console.error('Lỗi UI update', e); }
+
       showLoading();
       // Fallback: tự ẩn spinner sau 30 giây nếu backend không phản hồi
       const _transferTimeout = setTimeout(() => { hideLoading(); showToast('Hết thời gian chờ. Kiểm tra kết nối mạng.', 'error'); }, 30000);
