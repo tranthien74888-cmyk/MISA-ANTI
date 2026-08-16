@@ -4876,6 +4876,16 @@
           clearTimeout(_transferTimeout);
           hideLoading();
           showToast('Chuyển khoản thành công!', 'success');
+          
+          // Cập nhật lại dữ liệu từ server để hiển thị trong lịch sử
+          google.script.run.withSuccessHandler(function (d) {
+            if (d) {
+              appData.taiKhoan = d.taiKhoan;
+              appData.giaoDich = d.giaoDich;
+              renderAll();
+            }
+          }).getAppData();
+
           renderAll();
           navigateTo('view-accounts');
         }).withFailureHandler(function (e) {
