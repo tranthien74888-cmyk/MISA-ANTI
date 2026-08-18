@@ -793,7 +793,7 @@
       <!-- Sổ tiết kiệm -->
       <div class="card-glass rounded-2xl p-5">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="font-semibold">Quản lý sổ tiết kiệm</h2>
+          <h2 class="font-semibold" id="saving-count-title">Quản lý sổ tiết kiệm</h2>
           <i class="fa-solid fa-chevron-right text-gray-500 text-sm cursor-pointer hover:text-white"></i>
         </div>
         <div class="space-y-3" id="savings-list"><!-- Render by JS --></div>
@@ -2346,8 +2346,18 @@
       const tk2 = tk.filter(a => String(a.loai || '').toLowerCase().includes('tiet'));
       const tkInvest = tk.filter(a => String(a.loai || '').toLowerCase() === 'chungkhoan');
 
+      const chiTotal = chi.reduce((s, a) => {
+        let val = +a.soDu || 0;
+        if (String(a.loai || '').toLowerCase() === 'ngoaite') val = val * (a.tigia || 1);
+        return s + val;
+      }, 0);
       document.querySelectorAll('[id="account-count-title"]').forEach(el => {
-        el.textContent = `Tài khoản chi tiêu (${chi.length})`;
+        el.textContent = `Tài khoản chi tiêu (${fmt(chiTotal)})`;
+      });
+
+      const savingsTotal = tk2.reduce((s, a) => s + (+a.soDu || 0), 0);
+      document.querySelectorAll('[id="saving-count-title"]').forEach(el => {
+        el.textContent = `Quản lý sổ tiết kiệm (${fmt(savingsTotal)})`;
       });
 
       const investTotal = tkInvest.reduce((s, a) => s + (+a.soDu || 0), 0);
@@ -3054,16 +3064,19 @@
       const iconGrid = document.getElementById('acc-icon-grid');
       const colorGrid = document.getElementById('acc-color-grid');
       if (iconGrid) {
-        iconGrid.innerHTML = ACC_ICONS.map(ic => `
-      <div onclick="selectAccIcon('${ic}')" class="w-10 h-10 bg-dark-input rounded-xl flex items-center justify-center cursor-pointer transition hover:opacity-80 ${selAccIcon === ic ? 'ring-2 ring-accent-blue' : ''}">
-        <i class="fa-solid ${ic} text-white text-sm"></i>
-      </div>`).join('');
+        iconGrid.innerHTML = ACC_ICONS.map(ic => {
+          const isSelected = selAccIcon === ic;
+          const bgClass = isSelected ? 'bg-blue-500 shadow-lg shadow-blue-500/50 ring-2 ring-blue-300' : 'bg-dark-input hover:opacity-80';
+          const iconClass = isSelected ? 'text-white' : 'text-gray-300';
+          return `<div onclick="selectAccIcon('${ic}')" class="w-10 h-10 ${bgClass} rounded-xl flex items-center justify-center cursor-pointer transition"><i class="fa-solid ${ic} ${iconClass} text-sm"></i></div>`;
+        }).join('');
       }
       if (colorGrid) {
-        colorGrid.innerHTML = ACC_COLORS.map(cl => `
-      <div onclick="selectAccColor('${cl}')" class="w-8 h-8 ${cl} rounded-full cursor-pointer transition hover:scale-110 flex items-center justify-center ${selAccColor === cl ? 'ring-2 ring-white' : ''}">
-        ${selAccColor === cl ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
-      </div>`).join('');
+        colorGrid.innerHTML = ACC_COLORS.map(cl => {
+          const isSelected = selAccColor === cl;
+          const ringClass = isSelected ? 'ring-4 ring-offset-2 ring-blue-400 ring-offset-[#111827]' : '';
+          return `<div onclick="selectAccColor('${cl}')" class="w-8 h-8 ${cl} rounded-full cursor-pointer transition hover:scale-110 flex items-center justify-center ${ringClass}">${isSelected ? '<i class="fa-solid fa-check text-white text-xs drop-shadow-md"></i>' : ''}</div>`;
+        }).join('');
       }
     }
 
