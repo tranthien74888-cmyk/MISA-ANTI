@@ -3849,10 +3849,17 @@
       document.getElementById('add-cat-modal').classList.remove('flex');
     }
     function renderAddCatOptions() {
-      document.getElementById('cat-icon-grid').innerHTML = ACC_ICONS.map(ic => `
-    <div onclick="selCatIcon='${ic}'; renderAddCatOptions()" class="w-10 h-10 bg-dark-input rounded-xl flex items-center justify-center cursor-pointer transition ${selCatIcon === ic ? 'ring-2 ring-accent-blue' : ''}"><i class="fa-solid ${ic} text-white text-sm"></i></div>`).join('');
-      document.getElementById('cat-color-grid').innerHTML = ACC_COLORS.map(cl => `
-    <div onclick="selCatColor='${cl}'; renderAddCatOptions()" class="w-8 h-8 ${cl} rounded-full cursor-pointer transition flex items-center justify-center ${selCatColor === cl ? 'ring-2 ring-white ring-offset-1 ring-offset-dark-card' : ''}">${selCatColor === cl ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}</div>`).join('');
+      document.getElementById('cat-icon-grid').innerHTML = ACC_ICONS.map(ic => {
+        const isSelected = selCatIcon === ic;
+        const bgClass = isSelected ? 'bg-blue-500 shadow-lg shadow-blue-500/50 ring-2 ring-blue-300' : 'bg-dark-input hover:opacity-80';
+        const iconClass = isSelected ? 'text-white' : 'text-gray-300';
+        return `<div onclick="selCatIcon='${ic}'; renderAddCatOptions()" class="w-10 h-10 ${bgClass} rounded-xl flex items-center justify-center cursor-pointer transition"><i class="fa-solid ${ic} ${iconClass} text-sm"></i></div>`;
+      }).join('');
+      document.getElementById('cat-color-grid').innerHTML = ACC_COLORS.map(cl => {
+        const isSelected = selCatColor === cl;
+        const ringClass = isSelected ? 'ring-4 ring-offset-2 ring-blue-400 ring-offset-dark-card' : '';
+        return `<div onclick="selCatColor='${cl}'; renderAddCatOptions()" class="w-8 h-8 ${cl} rounded-full cursor-pointer transition flex items-center justify-center ${ringClass}">${isSelected ? '<i class="fa-solid fa-check text-white text-xs drop-shadow-md"></i>' : ''}</div>`;
+      }).join('');
     }
     function saveNewCategory() {
       const type = document.getElementById('new-cat-type').value;
@@ -3910,16 +3917,19 @@
       const iconGrid = document.getElementById('saving-icon-grid');
       const colorGrid = document.getElementById('saving-color-grid');
       if (iconGrid) {
-        iconGrid.innerHTML = ACC_ICONS.map(ic => `
-      <div onclick="selectSavingIcon('${ic}')" class="w-10 h-10 bg-dark-input rounded-xl flex items-center justify-center cursor-pointer transition flex-shrink-0 hover:opacity-80 ${selSavingIcon === ic ? 'ring-2 ring-accent-blue' : ''}">
-        <i class="fa-solid ${ic} text-white text-sm"></i>
-      </div>`).join('');
+        iconGrid.innerHTML = ACC_ICONS.map(ic => {
+          const isSelected = selSavingIcon === ic;
+          const bgClass = isSelected ? 'bg-blue-500 shadow-lg shadow-blue-500/50 ring-2 ring-blue-300' : 'bg-dark-input hover:opacity-80';
+          const iconClass = isSelected ? 'text-white' : 'text-gray-300';
+          return `<div onclick="selectSavingIcon('${ic}')" class="w-10 h-10 ${bgClass} rounded-xl flex items-center justify-center cursor-pointer transition flex-shrink-0"><i class="fa-solid ${ic} ${iconClass} text-sm"></i></div>`;
+        }).join('');
       }
       if (colorGrid) {
-        colorGrid.innerHTML = ACC_COLORS.map(cl => `
-      <div onclick="selectSavingColor('${cl}')" class="w-8 h-8 ${cl} rounded-full cursor-pointer transition flex-shrink-0 hover:scale-110 flex items-center justify-center ${selSavingColor === cl ? 'ring-2 ring-white' : ''}">
-        ${selSavingColor === cl ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
-      </div>`).join('');
+        colorGrid.innerHTML = ACC_COLORS.map(cl => {
+          const isSelected = selSavingColor === cl;
+          const ringClass = isSelected ? 'ring-4 ring-offset-2 ring-blue-400 ring-offset-[#1f2937]' : '';
+          return `<div onclick="selectSavingColor('${cl}')" class="w-8 h-8 ${cl} rounded-full cursor-pointer transition flex-shrink-0 hover:scale-110 flex items-center justify-center ${ringClass}">${isSelected ? '<i class="fa-solid fa-check text-white text-xs drop-shadow-md"></i>' : ''}</div>`;
+        }).join('');
       }
     }
 
@@ -4940,16 +4950,19 @@
       const iconGrid = document.getElementById('edit-acc-icon-grid-v2');
       const colorGrid = document.getElementById('edit-acc-color-grid-v2');
       if (iconGrid) {
-        iconGrid.innerHTML = ACC_ICONS.map(ic => `
-      <div onclick="selEditAccIcon='${ic}'; renderEditAccOptions()" class="w-10 h-10 bg-dark-input rounded-xl flex items-center justify-center cursor-pointer transition hover:opacity-80 ${selEditAccIcon === ic ? 'ring-2 ring-accent-blue' : ''}">
-        <i class="fa-solid ${ic} text-white text-sm"></i>
-      </div>`).join('');
+        iconGrid.innerHTML = ACC_ICONS.map(ic => {
+          const isSelected = selEditAccIcon === ic;
+          const bgClass = isSelected ? 'bg-blue-500 shadow-lg shadow-blue-500/50 ring-2 ring-blue-300' : 'bg-dark-input hover:opacity-80';
+          const iconClass = isSelected ? 'text-white' : 'text-gray-300';
+          return `<div onclick="selEditAccIcon='${ic}'; renderEditAccOptions()" class="w-10 h-10 ${bgClass} rounded-xl flex items-center justify-center cursor-pointer transition"><i class="fa-solid ${ic} ${iconClass} text-sm"></i></div>`;
+        }).join('');
       }
       if (colorGrid) {
-        colorGrid.innerHTML = ACC_COLORS.map(cl => `
-      <div onclick="selEditAccColor='${cl}'; renderEditAccOptions()" class="w-8 h-8 ${cl} rounded-full cursor-pointer transition hover:scale-110 flex items-center justify-center ${selEditAccColor === cl ? 'ring-2 ring-white' : ''}">
-        ${selEditAccColor === cl ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
-      </div>`).join('');
+        colorGrid.innerHTML = ACC_COLORS.map(cl => {
+          const isSelected = selEditAccColor === cl;
+          const ringClass = isSelected ? 'ring-4 ring-offset-2 ring-blue-400 ring-offset-[#111827]' : '';
+          return `<div onclick="selEditAccColor='${cl}'; renderEditAccOptions()" class="w-8 h-8 ${cl} rounded-full cursor-pointer transition hover:scale-110 flex items-center justify-center ${ringClass}">${isSelected ? '<i class="fa-solid fa-check text-white text-xs drop-shadow-md"></i>' : ''}</div>`;
+        }).join('');
       }
     }
 
