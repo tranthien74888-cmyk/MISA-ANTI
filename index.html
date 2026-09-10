@@ -3749,6 +3749,14 @@
           return;
         }
 
+        // Bỏ qua các khoản thu/chi dùm và các giao dịch luân chuyển nội bộ
+        if (t.hm) {
+          const hm = String(t.hm).toLowerCase();
+          if (hm === 'thu dùm' || hm === 'chi dùm' || t.hm === 'Chuyển khoản' || t.hm === 'Nhận tiền' || t.hm === 'Tất toán STK') {
+            return;
+          }
+        }
+
         if (!monthly[mKey]) monthly[mKey] = { thu: 0, chi: 0 };
         if (t.loai === 'Thu') monthly[mKey].thu += +t.sotien;
         else if (isExpenseType(t.loai)) monthly[mKey].chi += +t.sotien;
