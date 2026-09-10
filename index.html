@@ -3750,11 +3750,11 @@
         }
 
         // Bỏ qua các khoản thu/chi dùm và các giao dịch luân chuyển nội bộ
-        if (t.hm) {
-          const hm = String(t.hm).toLowerCase();
-          if (hm === 'thu dùm' || hm === 'chi dùm' || t.hm === 'Chuyển khoản' || t.hm === 'Nhận tiền' || t.hm === 'Tất toán STK') {
-            return;
-          }
+        const loai = t.loai ? String(t.loai).toLowerCase().trim() : '';
+        const hm = t.hm ? String(t.hm).toLowerCase().trim() : '';
+        
+        if (hm === 'thu dùm' || hm === 'chi dùm' || hm === 'chuyển khoản' || hm === 'nhận tiền' || hm === 'tất toán stk' || loai === 'chuyển khoản' || loai === 'chuyển tiền') {
+          return;
         }
 
         if (!monthly[mKey]) monthly[mKey] = { thu: 0, chi: 0 };
