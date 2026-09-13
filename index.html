@@ -5464,6 +5464,15 @@
     // Reset spinner state khi app khởi động (tránh spinner “trơ” từ phiên trước)
     hideLoading();
 
+    // Tự động quét dữ liệu khi mở app / quay lại tab (PWA/Mobile)
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') {
+        if (typeof loadDataSilent === 'function') {
+          // Thêm delay nhỏ tránh app bị treo lúc vừa wakeup
+          setTimeout(loadDataSilent, 500);
+        }
+      }
+    });
 
   </script>
 </body>
