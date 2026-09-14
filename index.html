@@ -1477,13 +1477,29 @@
   <!-- MODAL ĐÁO HẠN -->
   <div id="maturity-modal" class="fixed inset-0 z-[200] hidden items-center justify-center"
     style="background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);">
+    <input type="hidden" id="maturity-saving-name">
     <div class="bg-dark-card w-11/12 max-w-sm rounded-3xl p-6 relative">
       <div
         class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
         <i class="fa-solid fa-piggy-bank text-white text-2xl"></i>
       </div>
       <h3 class="text-xl font-bold text-center mb-2" id="maturity-title">Đáo hạn sổ tiết kiệm</h3>
-      <p class="text-gray-400 text-sm text-center mb-6" id="maturity-msg">Sổ tiết kiệm đã đến ngày đáo hạn.</p>
+      <p class="text-gray-400 text-sm text-center mb-3" id="maturity-msg">Sổ tiết kiệm đã đến ngày đáo hạn.</p>
+      <!-- Thông tin lãi tất toán -->
+      <div id="maturity-interest-info" class="bg-dark-input rounded-xl px-4 py-3 mb-5 text-sm hidden">
+        <div class="flex justify-between mb-1">
+          <span class="text-gray-400">Số tiền gốc</span>
+          <span class="font-semibold" id="maturity-principal"></span>
+        </div>
+        <div class="flex justify-between mb-1">
+          <span class="text-gray-400">Lãi tất toán</span>
+          <span class="font-semibold text-income-green" id="maturity-interest"></span>
+        </div>
+        <div class="flex justify-between border-t border-gray-700 pt-2 mt-1">
+          <span class="text-white font-bold">Tổng nhận về</span>
+          <span class="font-bold text-accent-blue" id="maturity-total"></span>
+        </div>
+      </div>
 
       <div id="maturity-actions">
         <button onclick="showTattoanForm()"
@@ -1627,12 +1643,9 @@
 
     <div class="flex space-x-3 mt-4 mb-4">
       <button onclick="saveEditSavingV2()"
-        class="flex-1 bg-accent-blue hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl text-base shadow-sm">Lưu
-        lại</button>
-      <button
-        onclick="document.getElementById('maturity-modal').classList.remove('hidden'); document.getElementById('maturity-modal').classList.add('flex'); document.getElementById('maturity-acc-index').value = appData.taiKhoan.findIndex(a => a.ten === document.getElementById('edit-saving-oldname-v2').value);"
-        class="flex-1 bg-[#10b981] hover:bg-green-600 text-white font-bold py-3.5 rounded-xl text-base shadow-lg">Tất
-        toán</button>
+        class="flex-1 bg-accent-blue hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl text-base shadow-sm">Lưu lại</button>
+      <button onclick="openMaturityModal(document.getElementById('edit-saving-oldname-v2').value)"
+        class="flex-1 bg-[#10b981] hover:bg-green-600 text-white font-bold py-3.5 rounded-xl text-base shadow-lg">Tất toán</button>
     </div>
 
     <div class="flex space-x-3 mb-6">
@@ -4044,41 +4057,115 @@
       navigateTo('view-saving-detail');
     }
 
-    function processMaturity(action) {
-      const idx = document.getElementById('maturity-acc-index').value;
-      const tk = appData.taiKhoan[idx];
+    // ── TẤT TOÁN SỔ TIẾT KIỆM ──
+
+    function calcMaturityInterest(tk) {
+      const principal = Number(tk.soDu) || 0;
+      const rate = parseFloat(String(tk.laiSuat || '0').replace(',', '.')) || 0;
+      const months = parseFloat(String(tk.kyHan || '0').replace(',', '.')) || 0;
+      const interest = principal * (rate / 100) * (months / 12);
+      return { principal, interest: Math.round(interest), total: Math.round(principal + interest) };
+    }
+
+    function openMaturityModal(tenTK) {
+      if (!appData || !tenTK) return;
+      const tk = (appData.taiKhoan || []).find(a => a.ten === tenTK);
       if (!tk) return;
-
-      const payload = { account: tk.ten, action: action };
-      if (action === 'rut') {
-        payload.targetAccount = document.getElementById('maturity-target-acc').value;
-      } else {
-        payload.newKyHan = document.getElementById('maturity-new-kyhan').value;
-        payload.newLaiSuat = document.getElementById('maturity-new-laisuat').value;
+      document.getElementById('maturity-saving-name').value = tenTK;
+      const titleEl = document.getElementById('maturity-title');
+      if (titleEl) titleEl.textContent = tenTK;
+      const { principal, interest, total } = calcMaturityInterest(tk);
+      const infoBox = document.getElementById('maturity-interest-info');
+      if (infoBox) {
+        document.getElementById('maturity-principal').textContent = fmt(principal);
+        document.getElementById('maturity-interest').textContent = '+' + fmt(interest);
+        document.getElementById('maturity-total').textContent = fmt(total);
+        infoBox.classList.remove('hidden');
       }
+      document.getElementById('maturity-actions').classList.remove('hidden');
+      document.getElementById('tattoan-form').classList.add('hidden');
+      const modal = document.getElementById('maturity-modal');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+    }
 
-      if (typeof google !== 'undefined') {
-        showToast('�ang x? l? t?t to�n...', 'success');
-        google.script.run.withSuccessHandler(r => {
-          document.getElementById('maturity-modal').classList.add('hidden');
-          document.getElementById('maturity-modal').classList.remove('flex');
-          showToast('X? l? s? tiết kiệm thă nh công!', 'success');
-          loadDataSilent();
-        }).withFailureHandler(e => showToast('Lỗi: ' + e.message, 'error')).processMaturity(payload);
+    function showTattoanForm() {
+      const sel = document.getElementById('tattoan-account-select');
+      if (sel && appData) {
+        const chiAccs = (appData.taiKhoan || []).filter(a => {
+          const l = String(a.loai || '').toLowerCase();
+          return !l.includes('tiet') && l !== 'chungkhoan';
+        });
+        sel.innerHTML = chiAccs.map(a => `<option value="${a.ten}">${a.ten}</option>`).join('');
+      }
+      document.getElementById('maturity-actions').classList.add('hidden');
+      document.getElementById('tattoan-form').classList.remove('hidden');
+    }
+
+    function hideTattoanForm() {
+      document.getElementById('tattoan-form').classList.add('hidden');
+      document.getElementById('maturity-actions').classList.remove('hidden');
+    }
+
+    function submitTattoan() {
+      const tenTK = document.getElementById('maturity-saving-name').value;
+      const destAcc = document.getElementById('tattoan-account-select').value;
+      if (!tenTK || !destAcc) { showToast('Vui lòng chọn tài khoản!', 'error'); return; }
+      const tk = (appData.taiKhoan || []).find(a => a.ten === tenTK);
+      if (!tk) { showToast('Không tìm thấy sổ!', 'error'); return; }
+      const { principal, interest, total } = calcMaturityInterest(tk);
+      const ghiChu = 'Goc: ' + fmt(principal) + ', Lai: ' + fmt(interest);
+      document.getElementById('maturity-modal').classList.add('hidden');
+      document.getElementById('maturity-modal').classList.remove('flex');
+      showToast('Đang xử lý tất toán...', 'success');
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(() => {
+            google.script.run
+              .withSuccessHandler(() => { showToast('Tất toán thành công!', 'success'); setTimeout(loadDataSilent, 500); navigateTo('view-accounts'); })
+              .withFailureHandler(e => { showToast('Lỗi: ' + e.message, 'error'); loadDataSilent(); })
+              .deleteAccount(tenTK);
+          })
+          .withFailureHandler(e => showToast('Lỗi: ' + e.message, 'error'))
+          .saveTransfer(tenTK, destAcc, total, ghiChu);
       } else {
-        showToast('Xong (Local)!', 'success');
-        document.getElementById('maturity-modal').classList.add('hidden');
-        document.getElementById('maturity-modal').classList.remove('flex');
+        if (appData && appData.taiKhoan) {
+          appData.taiKhoan = appData.taiKhoan.filter(a => a.ten !== tenTK);
+          const d = appData.taiKhoan.find(a => a.ten === destAcc);
+          if (d) d.soDu = (Number(d.soDu) || 0) + total;
+        }
+        showToast('Tất toán thành công!', 'success');
+        renderAll(); navigateTo('view-accounts');
       }
     }
 
-
-
-
-
-
-
-
+    function renewSavings() {
+      const tenTK = document.getElementById('maturity-saving-name').value;
+      if (!tenTK || !appData) return;
+      const tk = (appData.taiKhoan || []).find(a => a.ten === tenTK);
+      if (!tk) return;
+      const { total } = calcMaturityInterest(tk);
+      const today = new Date();
+      document.getElementById('maturity-modal').classList.add('hidden');
+      document.getElementById('maturity-modal').classList.remove('flex');
+      const addModal = document.getElementById('add-acc-modal');
+      if (!addModal) { showToast('Không tìm thấy form!', 'error'); return; }
+      const typeEl = document.getElementById('new-acc-type');
+      if (typeEl) { typeEl.value = 'tietkiem'; toggleLaiSuatRow(); }
+      const nameEl = document.getElementById('new-acc-name');
+      if (nameEl) nameEl.value = tk.ten + ' (moi)';
+      const balEl = document.getElementById('new-acc-balance');
+      if (balEl) { balEl.value = total.toLocaleString('en-US'); if (typeof onNewAccBalanceInput === 'function') onNewAccBalanceInput(balEl); }
+      const laisuatEl = document.getElementById('new-acc-laisuat');
+      if (laisuatEl) laisuatEl.value = tk.laiSuat || '';
+      const kyhanEl = document.getElementById('new-acc-kyhan');
+      if (kyhanEl) kyhanEl.value = tk.kyHan || '';
+      const ngayguiEl = document.getElementById('new-acc-ngaygui');
+      if (ngayguiEl) ngayguiEl.value = today.getDate().toString().padStart(2,'0') + '/' + (today.getMonth()+1).toString().padStart(2,'0') + '/' + today.getFullYear();
+      selAccIcon = tk.icon || 'fa-piggy-bank';
+      selAccColor = tk.color || 'bg-pink-500';
+      renderAddAccOptions();
+      addModal.classList.remove('hidden'); addModal.classList.add('flex');
+    }
 
     function formatDateGlobal(dateInput) {
       if (!dateInput) return '';
