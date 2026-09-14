@@ -3126,10 +3126,11 @@
               const oldName = window.renewOldAccName;
               window.renewOldAccName = null;
               google.script.run
-                .withSuccessHandler(() => {
+                .withSuccessHandler((resDel) => {
                   showToast('Gửi tiếp và xóa sổ cũ thành công!', 'success');
-                  loadDataSilent();
-                  navigateTo('view-home');
+                  if (resDel) appData = typeof resDel === 'string' ? JSON.parse(resDel) : resDel;
+                  renderAll();
+                  navigateTo('view-accounts');
                 })
                 .withFailureHandler(e => {
                   showToast('Lỗi xóa sổ cũ: ' + e.message, 'error');
@@ -3156,7 +3157,7 @@
           window.renewOldAccName = null;
           showToast('Gửi tiếp và xóa sổ cũ thành công! (Demo)', 'success');
           renderAll();
-          navigateTo('view-home');
+          navigateTo('view-accounts');
         } else {
           showToast('Đã thêm tài khoản ' + name + '!', 'success');
           renderAll();
