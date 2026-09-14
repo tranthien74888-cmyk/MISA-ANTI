@@ -3121,22 +3121,46 @@
         google.script.run
 
           .withSuccessHandler(() => {
-            showToast('Đã thêm tă i khoản ' + name + '!', 'success');
             closeAddAccountModal();
-            loadDataSilent();
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>Thêm tă i khoản'; }
+            if (window.renewOldAccName) {
+              const oldName = window.renewOldAccName;
+              window.renewOldAccName = null;
+              google.script.run
+                .withSuccessHandler(() => {
+                  showToast('Gửi tiếp và xóa sổ cũ thành công!', 'success');
+                  loadDataSilent();
+                  navigateTo('view-home');
+                })
+                .withFailureHandler(e => {
+                  showToast('Lỗi xóa sổ cũ: ' + e.message, 'error');
+                  loadDataSilent();
+                })
+                .deleteAccount(oldName);
+            } else {
+              showToast('Đã thêm tài khoản ' + name + '!', 'success');
+              loadDataSilent();
+            }
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>Thêm tài khoản'; }
           })
           .withFailureHandler(e => {
             showToast('Lỗi: ' + e.message, 'error');
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>Thêm tă i khoản'; }
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>Thêm tài khoản'; }
           })
           .addAccount(newAcc);
       } else {
         if (!appData) appData = { giaoDich: [], taiKhoan: [], hanMuc: [] };
         appData.taiKhoan.push(newAcc);
-        showToast('Đã thêm tă i khoản ' + name + '!', 'success');
         closeAddAccountModal();
-        renderAll();
+        if (window.renewOldAccName) {
+          appData.taiKhoan = appData.taiKhoan.filter(a => a.ten !== window.renewOldAccName);
+          window.renewOldAccName = null;
+          showToast('Gửi tiếp và xóa sổ cũ thành công! (Demo)', 'success');
+          renderAll();
+          navigateTo('view-home');
+        } else {
+          showToast('Đã thêm tài khoản ' + name + '!', 'success');
+          renderAll();
+        }
       }
     }
 
@@ -4164,6 +4188,7 @@
       selAccIcon = tk.icon || 'fa-piggy-bank';
       selAccColor = tk.color || 'bg-pink-500';
       renderAddAccOptions();
+      window.renewOldAccName = tk.ten;
       addModal.classList.remove('hidden'); addModal.classList.add('flex');
     }
 
