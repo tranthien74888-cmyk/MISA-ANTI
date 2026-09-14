@@ -4146,7 +4146,12 @@
         google.script.run
           .withSuccessHandler(() => {
             google.script.run
-              .withSuccessHandler(() => { showToast('Tất toán thành công!', 'success'); setTimeout(loadDataSilent, 500); navigateTo('view-accounts'); })
+              .withSuccessHandler((resDel) => { 
+                showToast('Tất toán thành công!', 'success'); 
+                if (resDel) appData = typeof resDel === 'string' ? JSON.parse(resDel) : resDel;
+                renderAll();
+                navigateTo('view-accounts'); 
+              })
               .withFailureHandler(e => { showToast('Lỗi: ' + e.message, 'error'); loadDataSilent(); })
               .deleteAccount(tenTK);
           })
