@@ -1476,9 +1476,13 @@
 
   <!-- MODAL ĐÁO HẠN -->
   <div id="maturity-modal" class="fixed inset-0 z-[200] hidden items-center justify-center"
-    style="background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);">
+    style="background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);"
+    onclick="this.classList.add('hidden'); this.classList.remove('flex');">
     <input type="hidden" id="maturity-saving-name">
-    <div class="bg-dark-card w-11/12 max-w-sm rounded-3xl p-6 relative">
+    <div class="bg-dark-card w-11/12 max-w-sm rounded-3xl p-6 relative" onclick="event.stopPropagation()">
+      <button onclick="document.getElementById('maturity-modal').classList.add('hidden'); document.getElementById('maturity-modal').classList.remove('flex');" class="absolute top-4 right-4 w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition">
+        <i class="fa-solid fa-times text-sm"></i>
+      </button>
       <div
         class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
         <i class="fa-solid fa-piggy-bank text-white text-2xl"></i>
