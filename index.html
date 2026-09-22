@@ -4368,11 +4368,11 @@
       const catSel = document.getElementById('filter-category');
       if (!catSel) return;
       let html = '<option value="all">Tất cả hạng mục</option>';
-      if (appData && appData.danhMuc) {
-        let cats = appData.danhMuc;
-        if (type !== 'all') cats = cats.filter(c => c.type === type);
-        html += cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-      }
+      let cats = [];
+      if (type === 'all' || type === 'Chi') cats = cats.concat(CATS.Chi.map(c => ({...c, type: 'Chi'})));
+      if (type === 'all' || type === 'Thu') cats = cats.concat(CATS.Thu.map(c => ({...c, type: 'Thu'})));
+      
+      html += cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
       catSel.innerHTML = html;
     }
 
@@ -4505,12 +4505,17 @@
             <div class="hidden border-t border-gray-700 border-opacity-40 px-4 py-2 space-y-2">
               ${txList.map(t => {
               const txIsThu = isIncomeType(t.loai);
+              let timeStr = '';
+              if (t.timestamp) {
+                const dt = new Date(t.timestamp);
+                if (!isNaN(dt.getTime())) timeStr = ' • ' + dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+              }
               return `
                 <div class="flex justify-between items-center py-2 border-b border-gray-700 border-opacity-20 last:border-0" onclick="openEditTransaction('${t.id}', '${t.tk}')">
                   <div class="flex items-center flex-1 overflow-hidden">
                     <div class="truncate">
                       <p class="text-sm font-medium text-white">${formatDateGlobal(t.ngay)}</p>
-                      <p class="text-gray-400 text-xs mt-0.5 truncate">${t.ghiChu ? t.ghiChu + ' • ' : ''}<i class="fa-solid fa-landmark text-xs mr-0.5"></i>${t.tk}</p>
+                      <p class="text-gray-400 text-xs mt-0.5 truncate">${t.ghiChu ? t.ghiChu + ' • ' : ''}<i class="fa-solid fa-landmark text-xs mr-0.5"></i>${t.tk}${timeStr}</p>
                     </div>
                   </div>
                   <span class="font-bold ${txIsThu ? 'text-income-green' : 'text-expense-red'} text-sm flex-shrink-0 pl-2">${txIsThu ? '+' : '-'}${fmt(t.sotien)}</span>
@@ -4678,6 +4683,11 @@
           <div class="space-y-1">
             ${items.map(t => {
               const cat = getCategoryInfo(t.hm, 'Chi');
+              let timeStr = '';
+              if (t.timestamp) {
+                const dt = new Date(t.timestamp);
+                if (!isNaN(dt.getTime())) timeStr = ' • ' + dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+              }
               return `
               <div class="flex items-center justify-between py-2 hover:bg-white hover:bg-opacity-5 rounded-lg cursor-pointer transition" onclick="openEditTransaction('${t.id}', '${t.tk}')">
                 <div class="flex items-center flex-1 overflow-hidden">
@@ -4686,7 +4696,7 @@
                   </div>
                   <div class="truncate pr-2">
                     <p class="text-sm font-bold text-white truncate">${t.hm}</p>
-                    <p class="text-gray-400 text-xs mt-0.5 truncate">${t.ghiChu ? t.ghiChu + ' • ' : ''}🏦 ${t.tk}</p>
+                    <p class="text-gray-400 text-xs mt-0.5 truncate">${t.ghiChu ? t.ghiChu + ' • ' : ''}🏦 ${t.tk}${timeStr}</p>
                   </div>
                 </div>
                 <div class="text-right flex-shrink-0 pl-2">
@@ -4829,6 +4839,11 @@
                 ngayHienThi = d.getDate().toString().padStart(2, '0') + '-' + (d.getMonth() + 1).toString().padStart(2, '0') + '-' + d.getFullYear();
               } else ngayHienThi = t.ngay;
             }
+            let timeStr = '';
+            if (t.timestamp) {
+              const dt = new Date(t.timestamp);
+              if (!isNaN(dt.getTime())) timeStr = ' • ' + dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            }
             return `
           <div class="tx-item flex justify-between items-center rounded-lg px-2 py-2 cursor-pointer hover:bg-white hover:bg-opacity-5 transition border-b border-gray-700 last:border-0" onclick="openEditTransaction('${t.id}', '${t.tk}')">
             <div class="flex items-center">
@@ -4837,7 +4852,7 @@
               </div>
               <div class="flex flex-col">
                 <span class="text-sm font-semibold text-gray-200">${ngayHienThi}</span>
-                <p class="text-gray-500 text-xs mt-0.5">${t.ghiChu ? t.ghiChu + ' • ' : ''}<i class="fa-solid fa-landmark text-xs mr-0.5"></i>${t.tk}</p>
+                <p class="text-gray-500 text-xs mt-0.5">${t.ghiChu ? t.ghiChu + ' • ' : ''}<i class="fa-solid fa-landmark text-xs mr-0.5"></i>${t.tk}${timeStr}</p>
               </div>
             </div>
             <div class="text-right flex-shrink-0">
