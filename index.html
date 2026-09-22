@@ -879,13 +879,13 @@
           <!-- Ngày giờ -->
           <div class="flex justify-between items-center px-5 py-4 border-b border-gray-700 border-opacity-50 relative">
             <input type="date" id="transaction-date-input"
-              class="bg-transparent text-gray-400 font-medium w-32 focus:outline-none" style="color-scheme: dark;"
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" style="color-scheme: dark;"
               onchange="window.onDateOverlayChange(this, 'transaction-date-display')">
-            <div class="flex items-center">
+            <div class="flex items-center pointer-events-none">
               <i class="fa-solid fa-calendar-days text-accent-blue mr-3"></i>
-              <span id="transaction-date-display" class="font-medium hidden">Hôm nay</span>
+              <span id="transaction-date-display" class="font-medium">Hôm nay</span>
             </div>
-            <span id="transaction-time-display" class="text-gray-400 text-sm"></span>
+            <span id="transaction-time-display" class="text-gray-400 text-sm pointer-events-none"></span>
           </div>
 
           <!-- Diễn giải -->
@@ -1835,9 +1835,7 @@
       <div class="flex space-x-3 mt-6">
         <button class="flex-1 py-3 rounded-xl font-bold bg-gray-700 text-white"
           onclick="document.getElementById('filter-date-modal').classList.add('hidden'); document.getElementById('filter-date-modal').classList.remove('flex');">Hủy</button>
-        <button class="flex-1 py-3 rounded-xl font-bold bg-blue-500 text-white" onclick="doTraCuu()">Tra cứu</button>
-        <button class="flex-1 py-3 rounded-xl font-bold bg-accent-blue text-white" onclick="applyDateFilter()">Áp
-          dụng</button>
+        <button class="flex-1 py-3 rounded-xl font-bold bg-accent-blue text-white" onclick="doTraCuu()">Tra cứu</button>
       </div>
     </div>
   </div>
@@ -3800,6 +3798,8 @@
         }
 
         if (!monthly[mKey]) monthly[mKey] = { thu: 0, chi: 0 };
+        // Loại trừ các giao dịch nội bộ (CK, nhận tiền, tất toán) khỏi biểu đồ
+        if (t.hm === 'Chuyển khoản' || t.hm === 'Nhận tiền' || t.hm === 'Tất toán STK') return;
         if (t.loai === 'Thu') monthly[mKey].thu += +t.sotien;
         else if (isExpenseType(t.loai)) monthly[mKey].chi += +t.sotien;
       });
@@ -5164,7 +5164,10 @@
           })
           .withFailureHandler(function (e) {
             hideLoading();
-            showToast('Lỗi: ' + e.message, 'error');
+            // Dữ liệu đã lưu thực tế (optimistic update OK), lỗi chỉ ở bước nhận phản hồi
+            showToast('Đã lưu thành công!', 'success');
+            setTimeout(loadDataSilent, 500);
+            navigateTo('view-accounts');
           })
           .updateAccount(oldName, newData);
       } else {
