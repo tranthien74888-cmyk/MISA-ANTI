@@ -1831,6 +1831,20 @@
             oninput="onDateInputSmart(this)" id="filter-date-to"
             class="w-full bg-dark-input rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-blue">
         </div>
+        <div>
+          <label class="text-xs text-gray-400 mb-1 block">Loại giao dịch</label>
+          <select id="filter-type" class="w-full bg-dark-input rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-blue appearance-none" onchange="updateFilterCategoryOptions()">
+            <option value="all">Tất cả (Thu & Chi)</option>
+            <option value="Chi">Chỉ xem Chi tiền</option>
+            <option value="Thu">Chỉ xem Thu tiền</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 mb-1 block">Hạng mục</label>
+          <select id="filter-category" class="w-full bg-dark-input rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-blue appearance-none">
+            <option value="all">Tất cả hạng mục</option>
+          </select>
+        </div>
       </div>
       <div class="flex space-x-3 mt-6">
         <button class="flex-1 py-3 rounded-xl font-bold bg-gray-700 text-white"
@@ -4225,14 +4239,22 @@
     function getTransactionSubtextHtml(t, isHistoryView) {
       const colorClass = isHistoryView ? 'text-gray-500' : 'text-gray-400';
 
+      let timeStr = '';
+      if (t.timestamp) {
+        const d = new Date(t.timestamp);
+        if (!isNaN(d.getTime())) {
+          timeStr = ' • ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        }
+      }
+
       if ((t.hm === 'Chuyển khoản' || t.hm === 'Tất toán STK') && t.ghiChu && t.ghiChu.startsWith('Chuyển sang ')) {
         const parts = t.ghiChu.split(' • ');
         const destAcc = parts[0].replace('Chuyển sang ', '').trim();
         const note = parts.slice(1).join(' • ').trim();
 
         let html = `<p class="${colorClass} text-xs mt-0.5">${t.tk} <i class="fa-solid fa-arrow-right mx-1 text-[10px] opacity-70"></i> ${destAcc}</p>`;
-        if (note) {
-          html += `<p class="${colorClass} text-xs mt-0.5">${note}</p>`;
+        if (note || timeStr) {
+          html += `<p class="${colorClass} text-xs mt-0.5">${note || ''}${note ? timeStr : timeStr.replace(' • ', '')}</p>`;
         }
         return html;
       }
@@ -4243,16 +4265,17 @@
         const note = parts.slice(1).join(' • ').trim();
 
         let html = `<p class="${colorClass} text-xs mt-0.5">${srcAcc} <i class="fa-solid fa-arrow-right mx-1 text-[10px] opacity-70"></i> ${t.tk}</p>`;
-        if (note) {
-          html += `<p class="${colorClass} text-xs mt-0.5">${note}</p>`;
+        if (note || timeStr) {
+          html += `<p class="${colorClass} text-xs mt-0.5">${note || ''}${note ? timeStr : timeStr.replace(' • ', '')}</p>`;
         }
         return html;
       }
 
       if (isHistoryView) {
-        return `<p class="${colorClass} text-xs mt-0.5">${t.ghiChu ? t.ghiChu + ' • ' : ''}<i class="fa-solid fa-landmark text-xs mr-0.5"></i>${t.tk}</p>`;
+        return `<p class="${colorClass} text-xs mt-0.5">${t.ghiChu ? t.ghiChu + ' • ' : ''}<i class="fa-solid fa-landmark text-xs mr-0.5"></i>${t.tk}${timeStr}</p>`;
       } else {
-        return `<p class="${colorClass} text-xs mt-0.5">${t.ghiChu || ''}</p>`;
+        const gc = t.ghiChu || '';
+        return `<p class="${colorClass} text-xs mt-0.5">${gc}${gc ? timeStr : timeStr.replace(' • ', '')}</p>`;
       }
     }
 
@@ -4335,6 +4358,22 @@
     function openDateFilterModal() {
       const m = document.getElementById('filter-date-modal');
       m.classList.remove('hidden'); m.classList.add('flex');
+      if (document.getElementById('filter-category') && document.getElementById('filter-category').options.length <= 1) {
+        updateFilterCategoryOptions();
+      }
+    }
+
+    function updateFilterCategoryOptions() {
+      const type = document.getElementById('filter-type') ? document.getElementById('filter-type').value : 'all';
+      const catSel = document.getElementById('filter-category');
+      if (!catSel) return;
+      let html = '<option value="all">Tất cả hạng mục</option>';
+      if (appData && appData.danhMuc) {
+        let cats = appData.danhMuc;
+        if (type !== 'all') cats = cats.filter(c => c.type === type);
+        html += cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+      }
+      catSel.innerHTML = html;
     }
 
     function setQuickDate(type) {
@@ -4384,6 +4423,8 @@
     function doTraCuu() {
       const from = document.getElementById('filter-date-from').value;
       const to = document.getElementById('filter-date-to').value;
+      const typeFilter = document.getElementById('filter-type') ? document.getElementById('filter-type').value : 'all';
+      const catFilter = document.getElementById('filter-category') ? document.getElementById('filter-category').value : 'all';
 
       function parseDDMMYYYY(str) {
         if (!str) return null;
@@ -4400,10 +4441,15 @@
       document.getElementById('filter-date-modal').classList.add('hidden');
       document.getElementById('filter-date-modal').classList.remove('flex');
 
-      // 2. Filter giao dịch Thu/Chi theo khoảng thời gian
+      // 2. Filter giao dịch Thu/Chi theo khoảng thời gian và hạng mục
       if (!appData) return;
       const gd = (appData.giaoDich || []).filter(t => {
         if (!isExpenseType(t.loai) && !isIncomeType(t.loai)) return false;
+        
+        if (typeFilter === 'Chi' && !isExpenseType(t.loai)) return false;
+        if (typeFilter === 'Thu' && !isIncomeType(t.loai)) return false;
+        if (catFilter !== 'all' && t.hm !== catFilter) return false;
+
         let d = typeof parseDateInternal === 'function' ? parseDateInternal(t.ngay) : new Date(t.ngay);
         if (!d || isNaN(d.getTime())) return true; // Fallback
 
