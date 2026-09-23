@@ -646,6 +646,9 @@
           </div>
         </div>
         <div class="flex items-center space-x-3">
+          <button id="btn-refresh-data" class="text-gray-400 hover:text-white transition-colors" onclick="refreshDataAnim(this)">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
           <span id="live-clock" class="text-gray-400 text-sm font-medium"></span>
           <div class="w-8 h-8 bg-accent-blue rounded-full flex items-center justify-center">
             <i class="fa-solid fa-user text-white text-sm"></i>
@@ -835,7 +838,7 @@
           <div class="flex justify-center items-baseline">
             <input type="text" id="transaction-amount" value=""
               class="bg-transparent text-center text-5xl font-bold text-expense-red focus:outline-none w-full"
-              oninput="onAmountInput(this)" inputmode="numeric" placeholder="0">
+              oninput="onAmountInput(this); saveDraft()" inputmode="numeric" placeholder="0">
           </div>
           <p id="amount-display-text" class="text-expense-red text-lg font-semibold mt-1">0 đ</p>
         </div>
@@ -880,7 +883,7 @@
           <div class="flex justify-between items-center px-5 py-4 border-b border-gray-700 border-opacity-50 relative">
             <input type="date" id="transaction-date-input"
               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" style="color-scheme: dark;"
-              onchange="window.onDateOverlayChange(this, 'transaction-date-display')">
+              onchange="window.onDateOverlayChange(this, 'transaction-date-display'); saveDraft()">
             <div class="flex items-center pointer-events-none">
               <i class="fa-solid fa-calendar-days text-accent-blue mr-3"></i>
               <span id="transaction-date-display" class="font-medium">Hôm nay</span>
@@ -892,7 +895,8 @@
           <div class="flex items-center px-5 py-4">
             <i class="fa-solid fa-bars text-accent-blue mr-3"></i>
             <input type="text" id="transaction-desc" placeholder="Diễn giải..."
-              class="bg-transparent focus:outline-none w-full text-white placeholder-gray-500 font-medium">
+              class="bg-transparent focus:outline-none w-full text-white placeholder-gray-500 font-medium"
+              oninput="saveDraft()">
           </div>
         </div>
 
@@ -2062,6 +2066,11 @@
       if (currentVisible && currentVisible.id !== 'view-add-transaction') {
         previousView = currentVisible.id;
       }
+      try {
+        if (viewId !== 'view-add-transaction') {
+          localStorage.setItem('misa_last_view', viewId);
+        }
+      } catch (e) {}
       document.querySelectorAll('.view-screen').forEach(s => s.classList.add('hidden'));
       const t = document.getElementById(viewId);
       if (t) t.classList.remove('hidden');
@@ -2211,6 +2220,17 @@
       renderAccounts();
       renderHistory();
       renderAccountModal();
+      
+      try {
+        const lastView = localStorage.getItem('misa_last_view');
+        if (lastView && document.getElementById(lastView)) {
+          navigateTo(lastView);
+        } else {
+          navigateTo('view-overview');
+        }
+      } catch (e) {
+        navigateTo('view-overview');
+      }
     }
 
     // ── FORMAT TIỀN ──
@@ -2914,6 +2934,8 @@
       // Reset nút Tất cả
       const btnAll = document.getElementById('btn-all-cats');
       if (btnAll) btnAll.innerHTML = 'Tất cả <i class="fa-solid fa-chevron-right text-xs"></i>';
+      
+      if (typeof saveDraft === 'function') saveDraft();
     }
 
     // FIX: render 4 mục hay dă¹ng mặc định, Tất cả → hiện thêm
@@ -2982,6 +3004,7 @@
       if (el) el.closest('.cat-item')?.classList.add('selected');
       const lbl = document.getElementById('selected-category-label');
       if (lbl) lbl.textContent = name;
+      saveDraft();
     }
 
     // ── MODAL CHỌN Tă€I KHOẢN ──
@@ -3027,6 +3050,7 @@
         preview.innerHTML = `<i class="fa-solid ${a.icon} text-white text-xs"></i>`;
       }
       closeAccountModal();
+      if (typeof saveDraft === 'function') saveDraft();
     }
 
     // ── MODAL THăŠM Tă€I KHOẢN ──
@@ -3233,6 +3257,7 @@
         if (tkItem) tkItem.soDu += (isIncomeType(type) ? +amount : -amount);
 
         renderAll();
+        clearDraft();
         resetForm();
         toggleTransactionType();
         navigateTo(typeof previousView !== 'undefined' && previousView ? previousView : 'view-overview');
@@ -3346,14 +3371,15 @@
 
 
     // ── LOAD DỮ LIỆU NGẦM (không chuyển view, đồng bộ tất cả) ──
-    function loadDataSilent() {
+    function loadDataSilent(cb) {
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(res => {
-            if (!res) { showToast('Lỗi ngầm: Dữ liệu bị rỗng!', 'error'); return; }
+            if (!res) { showToast('Lỗi ngầm: Dữ liệu bị rỗng!', 'error'); if(cb) cb(); return; }
             if (res.backendError) {
               showToast('Lỗi Server ngầm: ' + res.backendError, 'error');
               console.error(res.stack);
+              if(cb) cb();
               return;
             }
             appData = typeof res === 'string' ? JSON.parse(res) : res;
@@ -3363,40 +3389,110 @@
             renderAccounts();
             renderHistory();
             renderAccountModal();
+            if(cb) cb();
           })
-          .withFailureHandler(e => showToast('Lỗi đồng bộ ngầm: ' + e.message, 'error'))
+          .withFailureHandler(e => {
+            showToast('Lỗi đồng bộ ngầm: ' + e.message, 'error');
+            if(cb) cb();
+          })
           .getAppData();
       } else {
         renderAll();
+        if(cb) cb();
       }
+    }
+
+    function refreshDataAnim(btn) {
+      if (!navigator.onLine) {
+        showToast('Không có mạng để làm mới', 'error');
+        return;
+      }
+      const icon = btn.querySelector('i');
+      if (icon) icon.classList.add('animate-spin');
+      loadDataSilent(function() {
+        if (icon) icon.classList.remove('animate-spin');
+        showToast('Đã làm mới dữ liệu', 'success');
+      });
+    }
+
+    function saveDraft() {
+      const amt = document.getElementById('transaction-amount');
+      const desc = document.getElementById('transaction-desc');
+      const dateInput = document.getElementById('transaction-date-input');
+      const typeSelect = document.getElementById('transaction-type-select');
+      
+      const draft = {
+        amount: amt ? amt.value : '',
+        desc: desc ? desc.value : '',
+        date: dateInput ? dateInput.value : '',
+        category: selectedCategory,
+        accountIndex: selectedAccountIndex,
+        type: typeSelect ? typeSelect.value : 'Chi'
+      };
+      try { localStorage.setItem('misa_form_draft', JSON.stringify(draft)); } catch(e) {}
+    }
+
+    function clearDraft() {
+      try { localStorage.removeItem('misa_form_draft'); } catch(e) {}
     }
 
     function resetForm() {
       const amt = document.getElementById('transaction-amount');
-      if (amt) amt.value = '';
       const disp = document.getElementById('amount-display-text');
-      if (disp) disp.textContent = '0 đ';
       const desc = document.getElementById('transaction-desc');
-      if (desc) desc.value = '';
       const dateInput = document.getElementById('transaction-date-input');
-      if (dateInput) {
-        const now = new Date();
-        dateInput.value = now.getFullYear() + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getDate().toString().padStart(2, '0');
-      }
-      selectedCategory = '';
-      document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('selected'));
       const lbl = document.getElementById('selected-category-label');
-      if (lbl) lbl.textContent = 'Chọn hạng mục';
-      selectedAccountIndex = 0;
-      const accs = (appData?.taiKhoan || MOCK.taiKhoan).filter(a => String(a.loai || '').toLowerCase().startsWith('chi') && !String(a.loai || '').toLowerCase().includes('tiet'));
+      const typeSelect = document.getElementById('transaction-type-select');
+      
+      let draft = null;
+      try { draft = JSON.parse(localStorage.getItem('misa_form_draft')); } catch(e) {}
+      
+      if (draft) {
+        if (typeSelect && draft.type) {
+          typeSelect.value = draft.type;
+        }
+        if (amt) amt.value = draft.amount || '';
+        if (disp) {
+          const rawAmt = (draft.amount || '').replace(/\D/g, '');
+          const num = parseInt(rawAmt) || 0;
+          disp.textContent = num > 0 ? fmt(num) : '0 đ';
+        }
+        if (desc) desc.value = draft.desc || '';
+        if (dateInput) dateInput.value = draft.date || '';
+        else if (dateInput) {
+          const now = new Date();
+          dateInput.value = now.getFullYear() + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getDate().toString().padStart(2, '0');
+        }
+        
+        selectedCategory = draft.category || '';
+        document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('selected'));
+        if (lbl) lbl.textContent = selectedCategory || 'Chọn hạng mục';
+        selectedAccountIndex = draft.accountIndex || 0;
+      } else {
+        if (amt) amt.value = '';
+        if (disp) disp.textContent = '0 đ';
+        if (desc) desc.value = '';
+        if (dateInput) {
+          const now = new Date();
+          dateInput.value = now.getFullYear() + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getDate().toString().padStart(2, '0');
+        }
+        selectedCategory = '';
+        document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('selected'));
+        if (lbl) lbl.textContent = 'Chọn hạng mục';
+        selectedAccountIndex = 0;
+      }
+
+      const accs = (appData?.taiKhoan || MOCK.taiKhoan).filter(a => !String(a.loai || '').toLowerCase().includes('no'));
       if (accs.length) {
-        const first = accs[0];
-        const selAcc = document.getElementById('selected-account');
-        if (selAcc) selAcc.textContent = first.ten;
-        const preview = document.getElementById('account-icon-preview');
-        if (preview) {
-          preview.className = `w-8 h-8 ${first.color} rounded-lg flex items-center justify-center mr-3`;
-          preview.innerHTML = `<i class="fa-solid ${first.icon} text-white text-xs"></i>`;
+        const first = accs[selectedAccountIndex] || accs[0];
+        if (first) {
+          const selAcc = document.getElementById('selected-account');
+          if (selAcc) selAcc.textContent = first.ten;
+          const preview = document.getElementById('account-icon-preview');
+          if (preview) {
+            preview.className = `w-8 h-8 ${first.color} rounded-lg flex items-center justify-center mr-3`;
+            preview.innerHTML = `<i class="fa-solid ${first.icon} text-white text-xs"></i>`;
+          }
         }
       }
     }
