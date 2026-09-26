@@ -5553,10 +5553,19 @@
         const targetView = (typeof previousView !== 'undefined' && previousView && previousView !== 'view-edit-tx-v2')
           ? previousView : 'view-history';
 
-        // Optimistic update
+        // Optimistic update & Hoàn tiền lại số dư
         if (appData && appData.giaoDich) {
+          const txToDelete = appData.giaoDich.find(t => t.id === id);
+          if (txToDelete && appData.taiKhoan) {
+            const acc = appData.taiKhoan.find(a => a.ten === txToDelete.tk);
+            if (acc) {
+              if (isExpenseType(txToDelete.loai)) acc.soDu += Number(txToDelete.sotien);
+              else acc.soDu -= Number(txToDelete.sotien);
+            }
+          }
           appData.giaoDich = appData.giaoDich.filter(t => t.id !== id);
         }
+        
         // Render từng phần (KHÔNG gọi renderAll vì nó sẽ navigate lại theo localStorage)
         renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
         navigateTo(targetView);
@@ -5564,7 +5573,7 @@
 
         if (typeof google !== 'undefined' && google.script) {
           google.script.run.withSuccessHandler(function (d) {
-            window._lastSaveTxTime = null;
+            window._lastSaveTxTime = Date.now(); // Khóa reload ngầm chờ quá trình đồng bộ hoàn tất (30s)
             if (d) appData = typeof d === 'string' ? JSON.parse(d) : d;
             showToast('Đã xóa giao dịch', 'success');
             // Render từng phần và giữ nguyên view hiện tại (targetView)
