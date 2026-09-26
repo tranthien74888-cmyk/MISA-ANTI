@@ -3294,9 +3294,10 @@
         google.script.run
           .withSuccessHandler(() => {
             isSavingTransaction = false;
+            window._lastSaveTxTime = Date.now(); // Đánh dấu vừa lưu xong để chống reload đè data
             if (btnSave) { btnSave.innerHTML = originalBtnHtml; btnSave.classList.remove('opacity-70', 'pointer-events-none'); }
             showToast('Đã lưu thành công!', 'success');
-            setTimeout(loadDataSilent, 2000);
+            setTimeout(loadDataSilent, 3000); // Chờ GAS ghi xong mới đồng bộ lại
           })
           .withFailureHandler(e => {
             isSavingTransaction = false;
@@ -3382,7 +3383,31 @@
               if(cb) cb();
               return;
             }
-            appData = typeof res === 'string' ? JSON.parse(res) : res;
+            const newData = typeof res === 'string' ? JSON.parse(res) : res;
+
+            // Bảo vệ: nếu vừa lưu giao dịch mới trong 30s, giữ lại optimistic item tránh bị mất
+            if (window._lastSaveTxTime && (Date.now() - window._lastSaveTxTime) < 30000) {
+              if (appData && appData.giaoDich && newData.giaoDich) {
+                const serverIds = new Set(newData.giaoDich.map(t => t.id));
+                const localOnly = appData.giaoDich.filter(t => !serverIds.has(t.id));
+                newData.giaoDich = [...localOnly, ...newData.giaoDich];
+              }
+            }
+
+            appData = newData;
+
+            // Sort giaoDich mới nhất lên đầu (theo ngày, rồi theo timestamp nếu cùng ngày)
+            if (appData.giaoDich) {
+              appData.giaoDich.sort((a, b) => {
+                const da = parseDateInternal ? parseDateInternal(a.ngay) : new Date(a.ngay);
+                const db = parseDateInternal ? parseDateInternal(b.ngay) : new Date(b.ngay);
+                const diff = (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+                if (diff !== 0) return diff;
+                if (a.timestamp && b.timestamp) return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+                return 0;
+              });
+            }
+
             renderStats();
             renderChart();
             renderHanMuc();
@@ -5750,8 +5775,12 @@
     document.addEventListener('visibilitychange', function() {
       if (document.visibilityState === 'visible') {
         if (typeof loadDataSilent === 'function') {
-          // Thêm delay nhỏ tránh app bị treo lúc vừa wakeup
-          setTimeout(loadDataSilent, 500);
+          // Nếu vừa lưu giao dịch mới trong 30s, KHÔNG reload để tránh GAS trả data cũ ghi đè
+          const justSaved = window._lastSaveTxTime && (Date.now() - window._lastSaveTxTime) < 30000;
+          if (!justSaved) {
+            // Thêm delay nhỏ tránh app bị treo lúc vừa wakeup
+            setTimeout(loadDataSilent, 800);
+          }
         }
       }
     });
