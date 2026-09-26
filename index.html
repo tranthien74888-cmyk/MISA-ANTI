@@ -1002,7 +1002,7 @@
           <h3 class="font-semibold mb-3 text-gray-400 text-xs uppercase tracking-wider">Dữ liệu</h3>
           <div class="space-y-3">
             <div class="flex justify-between items-center cursor-pointer hover:opacity-80 transition py-1"
-              onclick="window.open('https://docs.google.com/spreadsheets/d/1lbBsOFjfBu2_OvJG81H6ilXTDeo57Pr8vui9WQaniF4/edit#gid=0', '_blank')">
+              onclick="window.open('https://docs.google.com/spreadsheets/d/1lbBsOFjfBu2_OvJG81H6ilXTDeo57Pr8vui9WQaniF4/edit#gid=transactions', '_blank')">
               <div class="flex items-center">
                 <div class="w-8 h-8 bg-income-green rounded-lg flex items-center justify-center mr-3">
                   <i class="fa-solid fa-table text-white text-sm"></i>
@@ -5549,32 +5549,35 @@
       if (confirm('Bạn có chắc chắn muốn xóa giao dịch này không?')) {
         const id = document.getElementById('edit-tx-id-v2').value;
         const oldTk = document.getElementById('edit-tx-oldtk-v2').value;
+        // Lưu lại view đích TRƯỚC khi navigate (để dùng trong callback)
+        const targetView = (typeof previousView !== 'undefined' && previousView && previousView !== 'view-edit-tx-v2')
+          ? previousView : 'view-history';
 
         // Optimistic update
         if (appData && appData.giaoDich) {
           appData.giaoDich = appData.giaoDich.filter(t => t.id !== id);
         }
-        renderAll();
-        navigateTo(typeof previousView !== 'undefined' && previousView ? previousView : 'view-history');
+        // Render từng phần (KHÔNG gọi renderAll vì nó sẽ navigate lại theo localStorage)
+        renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
+        navigateTo(targetView);
         showToast('Đang xóa...', 'info');
 
         if (typeof google !== 'undefined' && google.script) {
           google.script.run.withSuccessHandler(function (d) {
-            window._lastSaveTxTime = null; // Reset flag sau khi xóa xong
+            window._lastSaveTxTime = null;
             if (d) appData = typeof d === 'string' ? JSON.parse(d) : d;
             showToast('Đã xóa giao dịch', 'success');
-            renderAll();
-            // Tự navigate về đúng màn hình trước
-            if (typeof previousView !== 'undefined' && previousView === 'view-expense-details') {
+            // Render từng phần và giữ nguyên view hiện tại (targetView)
+            renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
+            if (targetView === 'view-expense-details') {
               openExpenseDetailsView();
             }
           }).withFailureHandler(function (e) {
-            // Khôi phục lại giao dịch nếu xóa thất bại
             showToast('Lỗi: ' + e.message, 'error');
             loadDataSilent();
           }).deleteTransaction(id, oldTk);
         } else {
-          setTimeout(() => { showToast('Đã xóa (demo)', 'success'); if (typeof previousView !== 'undefined' && previousView === 'view-expense-details') openExpenseDetailsView(); }, 500);
+          setTimeout(() => { showToast('Đã xóa (demo)', 'success'); }, 500);
         }
       }
     };
