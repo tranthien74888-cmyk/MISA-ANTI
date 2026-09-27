@@ -5331,30 +5331,32 @@
 
       if (appData && appData.taiKhoan) {
         const acc = appData.taiKhoan.find(a => a.ten === oldName);
-        if (acc) Object.assign(acc, { ten: newName, soDu: balance, loai, tigia, icon: selEditAccIcon, color: selEditAccColor });
-        renderAll();
+        if (acc) {
+          Object.assign(acc, { ten: newName, soDu: balance, loai, tigia, icon: selEditAccIcon, color: selEditAccColor });
+          if (oldName !== newName && appData.giaoDich) {
+            appData.giaoDich.forEach(t => { if (t.tk === oldName) t.tk = newName; });
+          }
+        }
       }
 
+      renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
+      navigateTo('view-accounts');
+      showToast('Đang cập nhật...', 'info');
+
       if (typeof google !== 'undefined' && google.script && google.script.run) {
-        showLoading();
         google.script.run
           .withSuccessHandler(function (d) {
-            hideLoading();
+            window._lastSaveTxTime = Date.now(); // Khóa reload ngầm 30s
+            if (d) appData = typeof d === 'string' ? JSON.parse(d) : d;
             showToast('Cập nhật tài khoản thành công!', 'success');
-            setTimeout(loadDataSilent, 300);
-            navigateTo('view-accounts');
+            renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
           })
           .withFailureHandler(function (e) {
-            hideLoading();
-            // Dữ liệu đã lưu thực tế (optimistic update OK), lỗi chỉ ở bước nhận phản hồi
-            showToast('Đã lưu thành công!', 'success');
-            setTimeout(loadDataSilent, 500);
-            navigateTo('view-accounts');
+            showToast('Lỗi: ' + e.message, 'error');
           })
           .updateAccount(oldName, newData);
       } else {
         showToast('Cập nhật thành công (Demo)!', 'success');
-        navigateTo('view-accounts');
       }
     }
 
@@ -5633,7 +5635,7 @@
       if (!amount || amount <= 0) { showToast('Vui lòng nhập số tiền', 'error'); return; }
       if (hm === 'Chọn hạng mục') { showToast('Vui lòng chọn hạng mục', 'error'); return; }
 
-      showLoading();
+      // showLoading(); // Tắt loading để chuyển cảnh mượt
       const catInfo = (type === 'Chi' ? CATS.Chi : CATS.Thu).find(c => c.name === hm) || { icon: 'fa-circle', color: 'bg-gray-500' };
 
       let editDate = new Date();
@@ -5658,22 +5660,48 @@
         thu2: 'Hôm nay',
         icon: catInfo.icon, color: catInfo.color
       };
+      
+      // Optimistic UI Cập nhật giao dịch
+      if (appData && appData.giaoDich && appData.taiKhoan) {
+        const txToEdit = appData.giaoDich.find(t => String(t.id) === String(id));
+        if (txToEdit) {
+          const oldAcc = appData.taiKhoan.find(a => a.ten === oldTk);
+          if (oldAcc) {
+            if (isExpenseType(txToEdit.loai)) oldAcc.soDu += Number(txToEdit.sotien);
+            else oldAcc.soDu -= Number(txToEdit.sotien);
+          }
+          const newAcc = appData.taiKhoan.find(a => a.ten === tk);
+          if (newAcc) {
+            if (isExpenseType(type)) newAcc.soDu -= Number(amount);
+            else newAcc.soDu += Number(amount);
+          }
+          txToEdit.loai = type; txToEdit.type = type;
+          txToEdit.hm = hm; txToEdit.category = hm;
+          txToEdit.sotien = amount; txToEdit.amount = amount;
+          txToEdit.tk = tk; txToEdit.account = tk;
+          txToEdit.ghiChu = ghiChu; txToEdit.description = ghiChu; txToEdit.note = ghiChu;
+          txToEdit.ngay = formatDateGlobal(editDate); txToEdit.date = formatDateGlobal(editDate);
+          txToEdit.icon = catInfo.icon; txToEdit.color = catInfo.color;
+        }
+      }
+
+      const targetView = typeof previousView !== 'undefined' && previousView ? previousView : 'view-history';
+      renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
+      navigateTo(targetView);
+      if (targetView === 'view-expense-details') openExpenseDetailsView();
+      showToast('Đang cập nhật...', 'info');
 
       if (typeof google !== 'undefined' && google.script) {
         google.script.run.withSuccessHandler(function (d) {
+          window._lastSaveTxTime = Date.now(); // Khóa reload ngầm 30s
           if (d) appData = typeof d === 'string' ? JSON.parse(d) : d;
-          hideLoading();
-          showToast('Cập nhật giao dịch thành công', 'success');
-          renderAll();
-          navigateTo(typeof previousView !== 'undefined' && previousView ? previousView : 'view-history');
-          if (typeof previousView !== 'undefined' && previousView === 'view-expense-details') {
-            openExpenseDetailsView();
-          }
+          showToast('Đã lưu cập nhật!', 'success');
+          renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
         }).withFailureHandler(function (e) {
-          hideLoading(); showToast('Lỗi: ' + e.message, 'error');
+          showToast('Lỗi: ' + e.message, 'error');
         }).editTransaction(id, oldTk, upObj);
       } else {
-        setTimeout(() => { hideLoading(); showToast('Đã cập nhật (demo)', 'success'); renderAll(); navigateTo(typeof previousView !== 'undefined' && previousView ? previousView : 'view-history'); if (typeof previousView !== 'undefined' && previousView === 'view-expense-details') openExpenseDetailsView(); }, 500);
+        setTimeout(() => { showToast('Đã cập nhật (demo)', 'success'); }, 500);
       }
     };
 
