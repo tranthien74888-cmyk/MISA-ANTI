@@ -881,15 +881,14 @@
 
           <!-- Ngày giờ -->
           <div class="flex justify-between items-center px-5 py-4 border-b border-gray-700 border-opacity-50 relative">
-            <input type="date" id="transaction-date-input"
-              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" style="color-scheme: dark;"
-              onchange="window.onDateOverlayChange(this, 'transaction-date-display'); saveDraft()"
-              oninput="window.onDateOverlayChange(this, 'transaction-date-display'); saveDraft()">
-            <div class="flex items-center pointer-events-none">
+            <div class="flex items-center w-full">
               <i class="fa-solid fa-calendar-days text-accent-blue mr-3"></i>
-              <span id="transaction-date-display" class="font-medium">Hôm nay</span>
+              <input type="text" id="transaction-date-input"
+                class="bg-transparent text-white font-medium focus:outline-none w-full" style="color-scheme: dark;"
+                onfocus="if(this.value && this.value.includes('-') && this.value.split('-')[0].length===2){const p=this.value.split('-');this.type='date';this.value=p[2]+'-'+p[1]+'-'+p[0];}else{this.type='date';}"
+                onblur="if(this.value && this.type==='date'){const p=this.value.split('-');this.type='text';this.value=p[2]+'-'+p[1]+'-'+p[0];}else{this.type='text';} saveDraft();"
+                onchange="saveDraft()">
             </div>
-            <span id="transaction-time-display" class="text-gray-400 text-sm pointer-events-none"></span>
           </div>
 
           <!-- Diễn giải -->
@@ -3284,7 +3283,11 @@
       if (dateInput) {
         const parts = dateInput.split('-');
         if (parts.length === 3) {
-          now.setFullYear(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          if (parts[0].length === 4) {
+            now.setFullYear(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          } else {
+            now.setFullYear(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          }
         }
       }
 
@@ -3532,10 +3535,19 @@
           disp.textContent = num > 0 ? fmt(num) : '0 đ';
         }
         if (desc) desc.value = draft.desc || '';
-        if (dateInput) dateInput.value = draft.date || '';
-        else if (dateInput) {
-          const now = new Date();
-          dateInput.value = now.getFullYear() + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getDate().toString().padStart(2, '0');
+        if (dateInput) {
+          dateInput.type = 'text';
+          if (draft.date) {
+            if (draft.date.includes('-') && draft.date.split('-')[0].length === 4) {
+              const p = draft.date.split('-');
+              dateInput.value = p[2] + '-' + p[1] + '-' + p[0];
+            } else {
+              dateInput.value = draft.date;
+            }
+          } else {
+            const now = new Date();
+            dateInput.value = now.getDate().toString().padStart(2, '0') + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getFullYear();
+          }
         }
         
         selectedCategory = draft.category || '';
@@ -3547,8 +3559,9 @@
         if (disp) disp.textContent = '0 đ';
         if (desc) desc.value = '';
         if (dateInput) {
+          dateInput.type = 'text';
           const now = new Date();
-          dateInput.value = now.getFullYear() + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getDate().toString().padStart(2, '0');
+          dateInput.value = now.getDate().toString().padStart(2, '0') + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getFullYear();
         }
         selectedCategory = '';
         document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('selected'));
@@ -5983,6 +5996,26 @@
         return '#1abc9c'; // Giảm hoặc bằng
       });
 
+      // Custom plugin vẽ giá trị trên đầu mỗi cột
+      const dataLabelPlugin = {
+        id: 'customDataLabels',
+        afterDatasetsDraw(chart, args, pluginOptions) {
+          const { ctx } = chart;
+          chart.getDatasetMeta(0).data.forEach((bar, index) => {
+            const val = values[index];
+            if (!val) return;
+            let text = fmt(val).replace(' đ', '').trim();
+            // Nếu số quá dài, rút gọn thành định dạng k (nghìn) hoặc tr (triệu) để đỡ tràn, hoặc giữ nguyên font nhỏ
+            ctx.save();
+            ctx.font = 'bold 10px sans-serif';
+            ctx.fillStyle = '#9ca3af';
+            ctx.textAlign = 'center';
+            ctx.fillText(text, bar.x, bar.y - 6);
+            ctx.restore();
+          });
+        }
+      };
+
       theoDoiChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -5995,9 +6028,13 @@
             barPercentage: 0.7
           }]
         },
+        plugins: [dataLabelPlugin],
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: { top: 20 }
+          },
           plugins: {
             legend: { display: false },
             tooltip: {
