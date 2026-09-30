@@ -715,9 +715,9 @@
           </div>
         </div>
 
-        <button id="btn-history" onclick="navigateTo('view-history')"
+        <button id="btn-history" onclick="openTheoDoiChiTheoThang()"
           class="w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-600 text-gray-300 hover:border-blue-500 hover:text-white transition-all duration-200">
-          <i class="fa-solid fa-clock-rotate-left mr-2"></i>Lịch sử ghi chép
+          <i class="fa-solid fa-chart-column mr-2"></i>Theo dõi chi theo tháng
         </button>
       </div>
 
@@ -883,7 +883,8 @@
           <div class="flex justify-between items-center px-5 py-4 border-b border-gray-700 border-opacity-50 relative">
             <input type="date" id="transaction-date-input"
               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" style="color-scheme: dark;"
-              onchange="window.onDateOverlayChange(this, 'transaction-date-display'); saveDraft()">
+              onchange="window.onDateOverlayChange(this, 'transaction-date-display'); saveDraft()"
+              oninput="window.onDateOverlayChange(this, 'transaction-date-display'); saveDraft()">
             <div class="flex items-center pointer-events-none">
               <i class="fa-solid fa-calendar-days text-accent-blue mr-3"></i>
               <span id="transaction-date-display" class="font-medium">Hôm nay</span>
@@ -1040,6 +1041,54 @@
     </div>
 
   </div><!-- end app-container -->
+
+  <!-- =============================== -->
+  <!-- MODAL: THEO DOI CHI THEO THANG  -->
+  <!-- =============================== -->
+  <div id="modal-theodoi-chi" class="fixed inset-0 z-[120] hidden items-end justify-center"
+    style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+    <div class="bg-dark-card w-full max-w-md rounded-t-3xl modal-slide-up flex flex-col" style="max-height: 88vh;">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
+        <button id="theodoi-back-btn" onclick="backToTheoDoiList()" class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 hidden">
+          <i class="fa-solid fa-arrow-left text-sm"></i>
+        </button>
+        <div class="flex-1">
+          <h3 id="theodoi-chart-title" class="text-base font-bold">Theo d&otilde;i chi theo th&aacute;ng</h3>
+          <p id="theodoi-chart-sub" class="text-gray-400 text-xs mt-0.5"></p>
+        </div>
+        <button onclick="closeTheoDoiModal()" class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition">
+          <i class="fa-solid fa-times text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Panel: Danh sach hang muc -->
+      <div id="theodoi-list-panel" class="flex-1 overflow-y-auto px-3 pb-5">
+        <p class="text-gray-400 text-xs px-2 pb-2">Ch&#7885;n h&#7841;ng m&#7ee5c mu&#7889;n xem xu h&#432;&#7899;ng chi:</p>
+        <div id="theodoi-cat-list" class="space-y-1">
+          <!-- Render by JS -->
+        </div>
+      </div>
+
+      <!-- Panel: Bieu do -->
+      <div id="theodoi-chart-panel" class="hidden flex-1 overflow-y-auto px-4 pb-5">
+        <!-- Chart -->
+        <div class="relative mb-4" style="height: 220px;">
+          <canvas id="theodoi-bar-chart"></canvas>
+        </div>
+        <!-- Legend mau -->
+        <div class="flex items-center space-x-4 mb-4 text-xs text-gray-400">
+          <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#1abc9c] mr-1"></span>Gi&#7843;m</span>
+          <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#e7515a] mr-1"></span>T&#259;ng</span>
+          <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#1e90ff] mr-1"></span>Th&aacute;ng hi&#7879;n t&#7841;i</span>
+        </div>
+        <!-- Summary -->
+        <div id="theodoi-summary"></div>
+      </div>
+
+    </div>
+  </div>
 
   <!-- =============================== -->
   <!-- BOTTOM NAVIGATION BAR           -->
@@ -3277,7 +3326,7 @@
           category: currentCategory, hm: currentCategory, hangMuc: currentCategory,
           account: account, tk: account,
           description: desc, ghiChu: desc, note: desc,
-          date: now.toISOString(), ngay: now.toISOString()
+          date: formatDateGlobal(now), ngay: formatDateGlobal(now)
         };
 
         if (!navigator.onLine) {
@@ -5615,11 +5664,13 @@
 
     window.onDateOverlayChange = function (el, displayId) {
       if (!el.value) return;
-      const d = new Date(el.value);
+      // Parse YYYY-MM-DD theo local timezone (tránh lệch UTC)
+      const parts = el.value.split('-');
+      const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
       const dateStr = d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
       const displayEl = document.getElementById(displayId);
       if (displayEl) {
-        displayEl.textContent = 'Hôm nay - ' + dateStr;
+        displayEl.textContent = dateStr;
       }
     };
     window.saveEditTransactionV2 = function () {
@@ -5779,17 +5830,212 @@
       if (typeof str === 'string') {
         if (str.includes('/')) {
           const p = str.split('/');
-          return new Date(p[2], p[1] - 1, p[0]);
+          if (p.length === 3) return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
         } else if (str.includes('-')) {
           const p = str.split('-');
           if (p.length === 3) {
-            if (p[0].length === 4) return new Date(p[0], p[1] - 1, p[2]);
-            else return new Date(p[2], p[1] - 1, p[0]);
+            if (p[0].length === 4) return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+            else return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
           }
-          return new Date(str);
         }
       }
       return null;
+    }
+
+    // ── THEO DÕI CHI THEO THÁNG ──
+    let theoDoiSelectedCat = null;
+    let theoDoiChart = null;
+
+    function openTheoDoiChiTheoThang() {
+      if (!appData) return;
+      // Lấy danh sách hạng mục chi có trong giao dịch, trừ "Chi dùm"
+      const catSet = {};
+      (appData.giaoDich || []).forEach(t => {
+        if (!isExpenseType(t.loai)) return;
+        if (!t.hm) return;
+        const hmLower = String(t.hm).toLowerCase().trim();
+        if (hmLower === 'chi dùm' || hmLower === 'chi dum') return;
+        if (t.hm === 'Chuyển khoản' || t.hm === 'Tất toán STK') return;
+        if (!catSet[t.hm]) {
+          const catInfo = getCategoryInfo(t.hm, 'Chi');
+          catSet[t.hm] = { name: t.hm, icon: catInfo.icon, color: catInfo.color };
+        }
+      });
+      // Bổ sung từ CATS.Chi (trừ Chi dùm)
+      (CATS.Chi || []).forEach(c => {
+        const cLower = String(c.name).toLowerCase().trim();
+        if (cLower === 'chi dùm' || cLower === 'chi dum') return;
+        if (!catSet[c.name]) catSet[c.name] = c;
+      });
+
+      const catList = Object.values(catSet);
+      const listEl = document.getElementById('theodoi-cat-list');
+      if (listEl) {
+        listEl.innerHTML = catList.map(c => `
+          <div class="flex items-center px-4 py-3 rounded-xl cursor-pointer hover:bg-white hover:bg-opacity-5 transition active:scale-95"
+            onclick="renderTheoDoiChart('${c.name.replace(/'/g, "\\'")}')">
+            <div class="w-10 h-10 ${c.color} rounded-xl flex items-center justify-center mr-3 flex-shrink-0">
+              <i class="fa-solid ${c.icon} text-white text-sm"></i>
+            </div>
+            <span class="font-medium">${c.name}</span>
+            <i class="fa-solid fa-chevron-right text-gray-500 text-xs ml-auto"></i>
+          </div>`).join('');
+      }
+
+      // Ẩn chart panel, hiện list panel
+      const listPanel = document.getElementById('theodoi-list-panel');
+      const chartPanel = document.getElementById('theodoi-chart-panel');
+      const backBtn = document.getElementById('theodoi-back-btn');
+      const titleEl2 = document.getElementById('theodoi-chart-title');
+      if (titleEl2) titleEl2.textContent = 'Theo dõi chi theo tháng';
+      const subEl2 = document.getElementById('theodoi-chart-sub');
+      if (subEl2) subEl2.textContent = 'Chọn hạng mục để xem biểu đồ';
+      if (listPanel) { listPanel.classList.remove('hidden'); }
+      if (chartPanel) { chartPanel.classList.add('hidden'); }
+      if (backBtn) { backBtn.classList.add('hidden'); }
+
+      const modal = document.getElementById('modal-theodoi-chi');
+      if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    }
+
+    function closeTheoDoiModal() {
+      const modal = document.getElementById('modal-theodoi-chi');
+      if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+      if (theoDoiChart) { theoDoiChart.destroy(); theoDoiChart = null; }
+    }
+
+    function backToTheoDoiList() {
+      const listPanel = document.getElementById('theodoi-list-panel');
+      const chartPanel = document.getElementById('theodoi-chart-panel');
+      const backBtn = document.getElementById('theodoi-back-btn');
+      const titleEl = document.getElementById('theodoi-chart-title');
+      const subEl = document.getElementById('theodoi-chart-sub');
+      if (listPanel) listPanel.classList.remove('hidden');
+      if (chartPanel) chartPanel.classList.add('hidden');
+      if (backBtn) backBtn.classList.add('hidden');
+      if (titleEl) titleEl.textContent = 'Theo dõi chi theo tháng';
+      if (subEl) subEl.textContent = 'Chọn hạng mục để xem biểu đồ';
+      if (theoDoiChart) { theoDoiChart.destroy(); theoDoiChart = null; }
+    }
+
+    function renderTheoDoiChart(catName) {
+      if (!appData) return;
+      theoDoiSelectedCat = catName;
+
+      // Tính tổng chi theo tháng cho hạng mục này
+      const monthlyData = {};
+      (appData.giaoDich || []).forEach(t => {
+        if (!isExpenseType(t.loai)) return;
+        if (t.hm !== catName) return;
+        const d = parseDateInternal(t.ngay);
+        if (!d || isNaN(d.getTime())) return;
+        const key = d.getFullYear() + '-' + (d.getMonth() + 1).toString().padStart(2, '0');
+        monthlyData[key] = (monthlyData[key] || 0) + Number(t.sotien);
+      });
+
+      // Sắp xếp tháng, lấy tối đa 12 tháng gần nhất
+      const sortedKeys = Object.keys(monthlyData).sort();
+      const last12 = sortedKeys.slice(-12);
+
+      if (last12.length === 0) {
+        const titleEl = document.getElementById('theodoi-chart-title');
+        if (titleEl) titleEl.textContent = catName + ' - Chưa có dữ liệu';
+        const listPanel = document.getElementById('theodoi-list-panel');
+        const chartPanel = document.getElementById('theodoi-chart-panel');
+        if (listPanel) listPanel.classList.add('hidden');
+        if (chartPanel) chartPanel.classList.remove('hidden');
+        const ctx = document.getElementById('theodoi-bar-chart');
+        if (ctx) ctx.closest('.relative').innerHTML = '<p class="text-gray-500 text-center py-8">Chưa có dữ liệu cho hạng mục này.</p>';
+        return;
+      }
+
+      const labels = last12.map(k => {
+        const [y, m] = k.split('-');
+        return 'T' + parseInt(m) + '/' + y.slice(2);
+      });
+      const values = last12.map(k => monthlyData[k]);
+      const maxVal = Math.max(...values, 1);
+
+      const titleEl = document.getElementById('theodoi-chart-title');
+      if (titleEl) titleEl.textContent = catName;
+
+      const subEl = document.getElementById('theodoi-chart-sub');
+      if (subEl) subEl.textContent = last12.length + ' tháng gần nhất';
+
+      const listPanel = document.getElementById('theodoi-list-panel');
+      const chartPanel = document.getElementById('theodoi-chart-panel');
+      const backBtn = document.getElementById('theodoi-back-btn');
+      if (listPanel) listPanel.classList.add('hidden');
+      if (chartPanel) chartPanel.classList.remove('hidden');
+      if (backBtn) backBtn.classList.remove('hidden');
+
+      // Destroy chart cũ
+      if (theoDoiChart) { theoDoiChart.destroy(); theoDoiChart = null; }
+
+      const ctx = document.getElementById('theodoi-bar-chart');
+      if (!ctx) return;
+
+      const catInfo = getCategoryInfo(catName, 'Chi');
+      // Tạo gradient color dựa trên trend
+      const bgColors = values.map((v, i) => {
+        if (i === values.length - 1) return '#1e90ff'; // Tháng hiện tại màu xanh nổi
+        if (v > (i > 0 ? values[i-1] : v)) return '#e7515a'; // Tăng so với tháng trước
+        return '#1abc9c'; // Giảm hoặc bằng
+      });
+
+      theoDoiChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: catName,
+            data: values.map(v => v / 1000000),
+            backgroundColor: bgColors,
+            borderRadius: 6,
+            barPercentage: 0.7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => fmt(ctx.raw * 1000000)
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 10 }, callback: v => (v + 'tr') } }
+          }
+        }
+      });
+
+      // Render bảng tổng kết dưới chart
+      const summaryEl = document.getElementById('theodoi-summary');
+      if (summaryEl) {
+        const total = values.reduce((s, v) => s + v, 0);
+        const avg = total / values.length;
+        const maxM = values.indexOf(maxVal);
+        summaryEl.innerHTML = `
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="bg-dark-input rounded-xl p-3">
+              <p class="text-gray-400 text-xs mb-1">Trung bình</p>
+              <p class="font-bold text-white text-sm">${fmt(Math.round(avg))}</p>
+            </div>
+            <div class="bg-dark-input rounded-xl p-3">
+              <p class="text-gray-400 text-xs mb-1">Cao nhất</p>
+              <p class="font-bold text-expense-red text-sm">${fmt(maxVal)}</p>
+              <p class="text-gray-500 text-[10px]">${labels[maxM]}</p>
+            </div>
+            <div class="bg-dark-input rounded-xl p-3">
+              <p class="text-gray-400 text-xs mb-1">Tổng ${last12.length} tháng</p>
+              <p class="font-bold text-accent-blue text-sm">${fmt(total)}</p>
+            </div>
+          </div>`;
+      }
     }
 
     // --- Theme System ---
