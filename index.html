@@ -3449,6 +3449,29 @@
 
             appData = newData;
 
+            if (appData.danhMuc && appData.danhMuc.length > 0) {
+              appData.danhMuc.forEach(c => {
+                const targetList = c.type === 'Thu' ? CATS.Thu : CATS.Chi;
+                const existing = targetList.find(x => x.name === c.name);
+                if (existing) {
+                  if (c.icon && c.icon !== 'fa-icons' && c.icon !== 'fa-box') existing.icon = c.icon;
+                  if (c.color && c.color !== 'bg-gray-500' && c.color !== 'bg-blue-500') existing.color = c.color;
+                } else {
+                  targetList.push({ name: c.name, icon: c.icon || 'fa-box', color: c.color || 'bg-gray-500', fav: c.fav });
+                }
+              });
+            }
+
+            if (appData.giaoDich) {
+              appData.giaoDich.forEach(t => {
+                const c = getCategoryInfo(t.hm, t.loai);
+                t.icon = c.icon;
+                t.color = c.color;
+              });
+            }
+
+            try { localStorage.setItem('misa_app_data_cache', JSON.stringify(appData)); } catch (e) { }
+
             // Sort giaoDich mới nhất lên đầu (theo ngày, rồi theo timestamp nếu cùng ngày)
             if (appData.giaoDich) {
               appData.giaoDich.sort((a, b) => {
@@ -3488,6 +3511,7 @@
       const icon = btn.querySelector('i');
       if (icon) icon.classList.add('animate-spin');
       try { localStorage.removeItem('misa_app_data_cache'); } catch(e) {}
+      window._lastSaveTxTime = 0;
       loadDataSilent(function() {
         if (icon) icon.classList.remove('animate-spin');
         showToast('Đã làm mới dữ liệu', 'success');
