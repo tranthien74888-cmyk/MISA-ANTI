@@ -3322,6 +3322,7 @@
       }
 
       if (typeof google !== 'undefined' && google.script && google.script.run) {
+        const yyyyMmDd = now.getFullYear() + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getDate().toString().padStart(2, '0');
         const payload = {
           id: newTx.id, // ID duy nhất do Client tạo, dùng để chống trùng lặp trên Server
           type: type, loai: type,
@@ -3329,7 +3330,7 @@
           category: currentCategory, hm: currentCategory, hangMuc: currentCategory,
           account: account, tk: account,
           description: desc, ghiChu: desc, note: desc,
-          date: formatDateGlobal(now), ngay: formatDateGlobal(now)
+          date: yyyyMmDd, ngay: yyyyMmDd
         };
 
         if (!navigator.onLine) {
@@ -3486,6 +3487,7 @@
       }
       const icon = btn.querySelector('i');
       if (icon) icon.classList.add('animate-spin');
+      try { localStorage.removeItem('misa_app_data_cache'); } catch(e) {}
       loadDataSilent(function() {
         if (icon) icon.classList.remove('animate-spin');
         showToast('Đã làm mới dữ liệu', 'success');
@@ -3537,7 +3539,9 @@
         if (desc) desc.value = draft.desc || '';
         if (dateInput) {
           dateInput.type = 'text';
-          if (draft.date) {
+          const now = new Date();
+          const todayStr = now.getDate().toString().padStart(2, '0') + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getFullYear();
+          if (draft.date && draft.date === todayStr) {
             if (draft.date.includes('-') && draft.date.split('-')[0].length === 4) {
               const p = draft.date.split('-');
               dateInput.value = p[2] + '-' + p[1] + '-' + p[0];
@@ -3545,8 +3549,7 @@
               dateInput.value = draft.date;
             }
           } else {
-            const now = new Date();
-            dateInput.value = now.getDate().toString().padStart(2, '0') + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getFullYear();
+            dateInput.value = todayStr;
           }
         }
         
@@ -4342,7 +4345,18 @@
       const ghiChu = 'Goc: ' + fmt(principal) + ', Lai: ' + fmt(interest);
       document.getElementById('maturity-modal').classList.add('hidden');
       document.getElementById('maturity-modal').classList.remove('flex');
-      showToast('Đang xử lý tất toán...', 'success');
+      
+      // Optimistic UI
+      if (appData && appData.taiKhoan) {
+        appData.taiKhoan = appData.taiKhoan.filter(a => a.ten !== tenTK);
+        const d = appData.taiKhoan.find(a => a.ten === destAcc);
+        if (d) d.soDu = (Number(d.soDu) || 0) + total;
+      }
+      window._lastSaveTxTime = Date.now();
+      renderAll();
+      navigateTo('view-accounts');
+      showToast('Đang xử lý tất toán...', 'info');
+
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(() => {
@@ -4351,21 +4365,14 @@
                 showToast('Tất toán thành công!', 'success'); 
                 if (resDel) appData = typeof resDel === 'string' ? JSON.parse(resDel) : resDel;
                 renderAll();
-                navigateTo('view-accounts'); 
               })
-              .withFailureHandler(e => { showToast('Lỗi: ' + e.message, 'error'); loadDataSilent(); })
+              .withFailureHandler(e => { showToast('Lỗi: ' + e.message, 'error'); setTimeout(loadDataSilent, 1000); })
               .deleteAccount(tenTK);
           })
-          .withFailureHandler(e => showToast('Lỗi: ' + e.message, 'error'))
+          .withFailureHandler(e => { showToast('Lỗi: ' + e.message, 'error'); setTimeout(loadDataSilent, 1000); })
           .saveTransfer(tenTK, destAcc, total, ghiChu);
       } else {
-        if (appData && appData.taiKhoan) {
-          appData.taiKhoan = appData.taiKhoan.filter(a => a.ten !== tenTK);
-          const d = appData.taiKhoan.find(a => a.ten === destAcc);
-          if (d) d.soDu = (Number(d.soDu) || 0) + total;
-        }
         showToast('Tất toán thành công!', 'success');
-        renderAll(); navigateTo('view-accounts');
       }
     }
 
