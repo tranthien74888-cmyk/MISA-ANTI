@@ -3322,7 +3322,7 @@
       }
 
       if (typeof google !== 'undefined' && google.script && google.script.run) {
-        const yyyyMmDd = now.getFullYear() + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getDate().toString().padStart(2, '0');
+        const dateIso = now.toISOString();
         const payload = {
           id: newTx.id, // ID duy nhất do Client tạo, dùng để chống trùng lặp trên Server
           type: type, loai: type,
@@ -3330,7 +3330,7 @@
           category: currentCategory, hm: currentCategory, hangMuc: currentCategory,
           account: account, tk: account,
           description: desc, ghiChu: desc, note: desc,
-          date: yyyyMmDd, ngay: yyyyMmDd
+          date: dateIso, ngay: dateIso
         };
 
         if (!navigator.onLine) {
@@ -3441,8 +3441,8 @@
             // Bảo vệ: nếu vừa lưu giao dịch mới trong 30s, giữ lại optimistic item tránh bị mất
             if (window._lastSaveTxTime && (Date.now() - window._lastSaveTxTime) < 30000) {
               if (appData && appData.giaoDich && newData.giaoDich) {
-                const serverIds = new Set(newData.giaoDich.map(t => t.id));
-                const localOnly = appData.giaoDich.filter(t => !serverIds.has(t.id));
+                const serverIds = new Set(newData.giaoDich.map(t => String(t.id)));
+                const localOnly = appData.giaoDich.filter(t => !serverIds.has(String(t.id)));
                 newData.giaoDich = [...localOnly, ...newData.giaoDich];
               }
             }
