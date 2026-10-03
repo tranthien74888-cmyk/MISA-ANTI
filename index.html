@@ -3021,11 +3021,36 @@
 
     // FIX: bỏ số 0 đứng đầu vă  thêm dấu phẩy ngăn cách hă ng ngă n
     function onAmountInput(el) {
-      const raw = el.value.replace(/\D/g, '');
-      const num = parseInt(raw) || 0;
-      el.value = num === 0 ? '' : num.toLocaleString('en-US');
+      const num = formatAmountKeepCaret(el);
       const disp = document.getElementById('amount-display-text');
       if (disp) disp.textContent = num > 0 ? fmt(num) : '0 đ';
+    }
+
+    // Định dạng số tiền (dấu phẩy) nhưng giữ nguyên vị trí con trỏ -> sửa được số ở bất kỳ vị trí nào
+    function formatAmountKeepCaret(el) {
+      const oldVal = el.value || '';
+      let caret = oldVal.length;
+      try { if (typeof el.selectionStart === 'number') caret = el.selectionStart; } catch (e) { }
+      const rawAll = oldVal.replace(/\D/g, '');
+      const leadingZeros = rawAll.length - rawAll.replace(/^0+/, '').length;
+      let digitsBefore = oldVal.slice(0, caret).replace(/\D/g, '').length - leadingZeros;
+      if (digitsBefore < 0) digitsBefore = 0;
+
+      const num = parseInt(rawAll) || 0;
+      const newVal = num === 0 ? '' : num.toLocaleString('en-US');
+      el.value = newVal;
+
+      if (document.activeElement === el) {
+        let pos = 0, count = 0;
+        if (digitsBefore > 0) {
+          for (pos = 0; pos < newVal.length; pos++) {
+            if (/\d/.test(newVal[pos])) count++;
+            if (count >= digitsBefore) { pos++; break; }
+          }
+        }
+        try { el.setSelectionRange(pos, pos); } catch (e) { }
+      }
+      return num;
     }
 
     function onDateInputSmart(el) {
@@ -3041,9 +3066,7 @@
     }
 
     function onNewAccBalanceInput(el) {
-      const raw = el.value.replace(/\D/g, '');
-      const num = parseInt(raw) || 0;
-      el.value = num === 0 ? '' : num.toLocaleString('en-US');
+      formatAmountKeepCaret(el);
     }
 
     function selectCategory(name, el) {
