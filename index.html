@@ -1202,8 +1202,10 @@
           <input type="number" id="new-acc-kyhan" placeholder="VD: 6"
             class="w-full bg-dark-input rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-blue mb-4">
           <label class="text-xs text-gray-400 mb-1.5 block font-medium">Ngày gửi</label>
-          <input type="date" id="new-acc-ngaygui" style="color-scheme: dark;"
-            class="w-full bg-dark-input rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-blue">
+          <input type="text" id="new-acc-ngaygui" style="color-scheme: dark;"
+            class="w-full bg-dark-input rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-blue"
+            onfocus="if(this.value && this.value.includes('-') && this.value.split('-')[0].length===2){const p=this.value.split('-');this.type='date';this.value=p[2]+'-'+p[1]+'-'+p[0];}else{this.type='date';}"
+            onblur="if(this.value && this.type==='date'){const p=this.value.split('-');this.type='text';this.value=p[2]+'-'+p[1]+'-'+p[0];}else{this.type='text';}">
         </div>
         <div>
           <label class="text-xs text-gray-400 mb-2 block font-medium">Biểu tượng</label>
@@ -1324,9 +1326,12 @@
           <input type="text" id="transfer-desc" placeholder="Diễn giải"
             class="bg-transparent focus:outline-none w-full text-white placeholder-gray-500 font-medium text-base">
         </div>
-        <div class="flex items-center px-4 py-4">
+        <div class="flex items-center w-full px-4 py-4 relative">
           <i class="fa-regular fa-calendar text-gray-400 mr-4 text-lg"></i>
-          <span id="transfer-date-display" class="font-medium text-white"></span>
+          <input type="text" id="transfer-date-input"
+            class="bg-transparent text-white font-medium focus:outline-none w-full" style="color-scheme: dark;"
+            onfocus="if(this.value && this.value.includes('-') && this.value.split('-')[0].length===2){const p=this.value.split('-');this.type='date';this.value=p[2]+'-'+p[1]+'-'+p[0];}else{this.type='date';}"
+            onblur="if(this.value && this.type==='date'){const p=this.value.split('-');this.type='text';this.value=p[2]+'-'+p[1]+'-'+p[0];}else{this.type='text';}">
         </div>
       </div>
 
@@ -1486,16 +1491,6 @@
           <i class="fa-solid fa-chevron-right text-gray-500 text-sm"></i>
         </div>
 
-        <div class="flex justify-between items-center px-4 py-4 border-b border-gray-700 relative">
-          <input type="date" id="edit-tx-date-input-v2"
-            class="bg-transparent text-white font-medium w-32 focus:outline-none" style="color-scheme: dark;"
-            onchange="window.onDateOverlayChange(this, 'edit-tx-date-display-v2')">
-          <div class="flex items-center">
-            <i class="fa-regular fa-calendar text-gray-400 mr-4 text-lg"></i>
-            <span id="edit-tx-date-display-v2" class="font-medium text-white text-base hidden">Hôm nay -
-              31/07/2026</span>
-          </div>
-        </div>
 
         <div class="flex items-center px-4 py-4">
           <i class="fa-solid fa-align-left text-gray-400 mr-4 text-lg"></i>
@@ -1662,9 +1657,11 @@
         <i class="fa-solid fa-calendar-days text-gray-400 w-6 text-center mr-3"></i>
         <div class="w-full">
           <label class="text-[10px] text-gray-400 block mb-1">Ngày gửi</label>
-          <input type="date" id="edit-saving-start-v2"
+          <input type="text" id="edit-saving-start-v2"
             class="bg-transparent focus:outline-none w-full text-white font-medium text-base"
-            style="color-scheme: dark;">
+            style="color-scheme: dark;"
+            onfocus="if(this.value && this.value.includes('-') && this.value.split('-')[0].length===2){const p=this.value.split('-');this.type='date';this.value=p[2]+'-'+p[1]+'-'+p[0];}else{this.type='date';}"
+            onblur="if(this.value && this.type==='date'){const p=this.value.split('-');this.type='text';this.value=p[2]+'-'+p[1]+'-'+p[0];}else{this.type='text';}">
         </div>
       </div>
       <div class="flex items-center border-b border-gray-600 pb-3 mb-3">
@@ -2102,9 +2099,7 @@
 
     function updateDateTime() {
       const now = new Date();
-      const dateEl = document.getElementById('transaction-date-display');
       const timeEl = document.getElementById('transaction-time-display');
-      if (dateEl) dateEl.textContent = 'Hôm nay - ' + formatDateGlobal(now);
       if (timeEl) timeEl.textContent = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     }
 
@@ -4302,9 +4297,9 @@
         if (!isNaN(d)) start = d.getDate().toString().padStart(2, '0') + '-' + (d.getMonth() + 1).toString().padStart(2, '0') + '-' + d.getFullYear();
       }
       if (start.includes('/')) {
-        start = start.split('/').reverse().join('-');
-      } else if (start.includes('-') && start.split('-')[0].length === 2) {
-        start = start.split('-').reverse().join('-');
+        start = start.split('/').join('-'); // dd/MM/yyyy -> dd-MM-yyyy
+      } else if (start.includes('-') && start.split('-')[0].length === 4) {
+        start = start.split('-').reverse().join('-'); // yyyy-MM-dd -> dd-MM-yyyy
       }
       document.getElementById('edit-saving-start-v2').value = start;
 
@@ -5294,9 +5289,8 @@
       document.getElementById('transfer-desc').value = '';
 
       const now = new Date();
-      const dStr = now.getDate().toString().padStart(2, '0') + '/' + (now.getMonth() + 1).toString().padStart(2, '0') + '/' + now.getFullYear();
-      const tStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-      document.getElementById('transfer-date-display').textContent = `Hôm nay - ${dStr} ${tStr}`;
+      const dStr = now.getDate().toString().padStart(2, '0') + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getFullYear();
+      document.getElementById('transfer-date-input').value = dStr;
 
       navigateTo('view-transfer');
     }
@@ -5318,18 +5312,29 @@
         if (fTk) fTk.soDu = Number(fTk.soDu) - amount;
         if (tTk) tTk.soDu = Number(tTk.soDu) + amount;
       }
+      
+      const dateInput = document.getElementById('transfer-date-input').value;
+      let targetDateStr = '';
+      if (dateInput) {
+        if (dateInput.includes('-') && dateInput.split('-')[0].length === 4) {
+          const p = dateInput.split('-');
+          targetDateStr = p[2] + '-' + p[1] + '-' + p[0];
+        } else {
+          targetDateStr = dateInput.replace(/\//g, '-');
+        }
+      } else {
+        const now = new Date();
+        targetDateStr = now.getDate().toString().padStart(2, '0') + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getFullYear();
+      }
 
       // Optimistic update: Thêm luôn 2 giao dịch vào lịch sử để hiển thị tức thì
       try {
         if (!appData.giaoDich) appData.giaoDich = [];
         const now = new Date();
         const isoStr = now.toISOString();
-        let dateStr = '';
-        if (typeof formatDateGlobal === 'function') dateStr = formatDateGlobal(now);
-        else dateStr = now.getDate().toString().padStart(2, '0') + '-' + (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getFullYear();
 
-        const tx1 = { id: 'temp-' + Date.now() + '-1', ngay: dateStr, thu2: 'Hôm nay', loai: 'Chi', hm: 'Chuyển khoản', sotien: amount, tk: fromAcc, ghiChu: 'Chuyển sang ' + toAcc + (desc ? ' • ' + desc : ''), icon: 'fa-exchange-alt', color: 'bg-blue-500', timestamp: isoStr };
-        const tx2 = { id: 'temp-' + Date.now() + '-2', ngay: dateStr, thu2: 'Hôm nay', loai: 'Thu', hm: 'Nhận tiền', sotien: amount, tk: toAcc, ghiChu: 'Nhận từ ' + fromAcc + (desc ? ' • ' + desc : ''), icon: 'fa-exchange-alt', color: 'bg-green-500', timestamp: isoStr };
+        const tx1 = { id: 'temp-' + Date.now() + '-1', ngay: targetDateStr, thu2: 'Hôm nay', loai: 'Chi', hm: 'Chuyển khoản', sotien: amount, tk: fromAcc, ghiChu: 'Chuyển sang ' + toAcc + (desc ? ' • ' + desc : ''), icon: 'fa-exchange-alt', color: 'bg-blue-500', timestamp: isoStr };
+        const tx2 = { id: 'temp-' + Date.now() + '-2', ngay: targetDateStr, thu2: 'Hôm nay', loai: 'Thu', hm: 'Nhận tiền', sotien: amount, tk: toAcc, ghiChu: 'Nhận từ ' + fromAcc + (desc ? ' • ' + desc : ''), icon: 'fa-exchange-alt', color: 'bg-green-500', timestamp: isoStr };
         
         appData.giaoDich.unshift(tx2);
         appData.giaoDich.unshift(tx1);
@@ -5358,7 +5363,7 @@
         }).withFailureHandler(function (e) {
           clearTimeout(_transferTimeout);
           hideLoading(); showToast('Lỗi: ' + e.message, 'error');
-        }).saveTransfer(fromAcc, toAcc, amount, desc);
+        }).saveTransfer(fromAcc, toAcc, amount, desc, targetDateStr);
       } else {
         clearTimeout(_transferTimeout);
         setTimeout(() => { hideLoading(); showToast('Chuyển khoản thành công (Demo)', 'success'); renderAll(); navigateTo('view-accounts'); }, 500);
@@ -5616,8 +5621,6 @@
           }
         }
       }
-      document.getElementById('edit-tx-date-display-v2').textContent = 'Hôm nay - ' + dateStr;
-
       document.getElementById('edit-tx-desc-v2').value = t.ghiChu || '';
 
       renderEditCategoriesGridV2();
