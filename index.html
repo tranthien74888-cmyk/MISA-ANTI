@@ -1158,7 +1158,7 @@
   <div id="add-acc-modal" class="fixed inset-0 z-[110] hidden items-end justify-center"
     style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
     <div class="bg-dark-card w-full max-w-md rounded-t-3xl p-6 modal-slide-up" style="max-height:90vh;overflow-y:auto;">
-      <div class="flex justify-between items-center mb-5">
+      <div class="flex justify-between items-center mb-5 sticky top-0 bg-dark-card z-20 py-4 -mt-6 -mx-6 px-6 rounded-t-3xl border-b border-gray-700/50">
         <h3 class="text-lg font-bold">Thêm tài khoản mới</h3>
         <button onclick="closeAddAccountModal()"
           class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition">
@@ -1926,7 +1926,7 @@
   <div id="add-cat-modal" class="fixed inset-0 z-[110] hidden items-end justify-center"
     style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
     <div class="bg-dark-card w-full max-w-md rounded-t-3xl p-6 modal-slide-up h-[85vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-5">
+      <div class="flex justify-between items-center mb-5 sticky top-0 bg-dark-card z-20 py-4 -mt-6 -mx-6 px-6 rounded-t-3xl border-b border-gray-700/50">
         <h3 class="text-lg font-bold">Thêm hạng mục mới</h3>
         <button onclick="closeAddCategoryModal()"
           class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition"><i
@@ -4831,7 +4831,7 @@
           </div>
           <span class="text-sm font-medium truncate">${c.name}</span>
         </div>
-        <input type="number" class="limit-input w-1/2 bg-transparent text-right text-white font-bold focus:outline-none placeholder-gray-500" placeholder="Không giới hạn" value="${val || ''}" data-cat="${c.name}">
+        <input type="text" inputmode="numeric" oninput="onNewAccBalanceInput(this)" class="limit-input w-1/2 bg-transparent text-right text-white font-bold focus:outline-none placeholder-gray-500" placeholder="Không giới hạn" value="${val || ''}" data-cat="${c.name}">
       </div>
     `;
       }).join('');
