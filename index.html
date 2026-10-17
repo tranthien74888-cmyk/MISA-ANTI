@@ -2141,7 +2141,6 @@
         if (activeBtn) activeBtn.classList.add('active-nav', 'text-accent-blue');
       }
 
-      if (viewId === 'view-account-detail') renderAccountDetail();
       if (viewId === 'view-category-detail') renderCategoryDetail();
       if (viewId === 'view-hanmuc') renderFullHanMuc();
       if (viewId === 'view-tinhhinh') renderTinhHinh();
@@ -2154,21 +2153,6 @@
     }
 
     function goBack() { navigateTo(previousView); }
-
-    // Hàm rỗng an toàn: tránh ReferenceError trong navigateTo (phần vẽ do openAccountDetail đảm nhiệm)
-    function renderAccountDetail() { }
-
-    // Làm mới chi tiết tài khoản đang mở, giữ nguyên previousView
-    function refreshAccountDetailSafe() {
-      try {
-        const titleEl = document.getElementById('detail-tk-title');
-        const name = titleEl ? titleEl.textContent : '';
-        if (!name) return;
-        const savedPrev = previousView;
-        openAccountDetail(name);
-        previousView = savedPrev;
-      } catch (e) { console.error('refreshAccountDetailSafe', e); }
-    }
 
     // ── TẢI DỮ LIỆU ──
     function loadData() {
@@ -5704,8 +5688,11 @@
         
         // Render từng phần (KHÔNG gọi renderAll vì nó sẽ navigate lại theo localStorage)
         renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
-        navigateTo(targetView);
-        if (targetView === 'view-account-detail') refreshAccountDetailSafe();
+        if (targetView === 'view-account-detail' && oldTk) {
+          openAccountDetail(oldTk);
+        } else {
+          navigateTo(targetView);
+        }
         showToast('Đang xóa...', 'info');
 
         if (typeof google !== 'undefined' && google.script) {
@@ -5715,8 +5702,9 @@
             showToast('Đã xóa giao dịch', 'success');
             // Render từng phần và giữ nguyên view hiện tại (targetView)
             renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
-            if (targetView === 'view-account-detail') refreshAccountDetailSafe();
-            if (targetView === 'view-expense-details') {
+            if (targetView === 'view-account-detail' && oldTk) {
+              openAccountDetail(oldTk);
+            } else if (targetView === 'view-expense-details') {
               openExpenseDetailsView();
             }
           }).withFailureHandler(function (e) {
@@ -5825,8 +5813,11 @@
 
       const targetView = typeof previousView !== 'undefined' && previousView ? previousView : 'view-history';
       renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
-      navigateTo(targetView);
-      if (targetView === 'view-account-detail') refreshAccountDetailSafe();
+      if (targetView === 'view-account-detail' && tk) {
+        openAccountDetail(tk);
+      } else {
+        navigateTo(targetView);
+      }
       if (targetView === 'view-expense-details') openExpenseDetailsView();
       showToast('Đang cập nhật...', 'info');
 
@@ -5836,6 +5827,9 @@
           if (d) appData = typeof d === 'string' ? JSON.parse(d) : d;
           showToast('Đã lưu cập nhật!', 'success');
           renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
+          if (targetView === 'view-account-detail' && tk) {
+            openAccountDetail(tk);
+          }
         }).withFailureHandler(function (e) {
           showToast('Lỗi: ' + e.message, 'error');
         }).editTransaction(id, oldTk, upObj);
