@@ -2155,6 +2155,19 @@
 
     function goBack() { navigateTo(previousView); }
 
+    // Vẽ lại chi tiết tài khoản đang mở (có cờ chống đệ quy + giữ nguyên previousView)
+    function renderAccountDetail() {
+      if (window._renderingAccDetail) return;
+      const titleEl = document.getElementById('detail-tk-title');
+      const name = titleEl ? titleEl.textContent : '';
+      if (!name || typeof openAccountDetail !== 'function') return;
+      const savedPrev = previousView;
+      window._renderingAccDetail = true;
+      try { openAccountDetail(name); }
+      catch (e) { console.error('renderAccountDetail', e); }
+      finally { window._renderingAccDetail = false; previousView = savedPrev; }
+    }
+
     // ── TẢI DỮ LIỆU ──
     function loadData() {
       // 1. Tải TỨC THÌ từ bộ nhớ đệm (Cache) để giảm cảm giác giật lag
