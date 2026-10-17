@@ -2155,17 +2155,19 @@
 
     function goBack() { navigateTo(previousView); }
 
-    // Vẽ lại chi tiết tài khoản đang mở (có cờ chống đệ quy + giữ nguyên previousView)
-    function renderAccountDetail() {
-      if (window._renderingAccDetail) return;
-      const titleEl = document.getElementById('detail-tk-title');
-      const name = titleEl ? titleEl.textContent : '';
-      if (!name || typeof openAccountDetail !== 'function') return;
-      const savedPrev = previousView;
-      window._renderingAccDetail = true;
-      try { openAccountDetail(name); }
-      catch (e) { console.error('renderAccountDetail', e); }
-      finally { window._renderingAccDetail = false; previousView = savedPrev; }
+    // Hàm rỗng an toàn: tránh ReferenceError trong navigateTo (phần vẽ do openAccountDetail đảm nhiệm)
+    function renderAccountDetail() { }
+
+    // Làm mới chi tiết tài khoản đang mở, giữ nguyên previousView
+    function refreshAccountDetailSafe() {
+      try {
+        const titleEl = document.getElementById('detail-tk-title');
+        const name = titleEl ? titleEl.textContent : '';
+        if (!name) return;
+        const savedPrev = previousView;
+        openAccountDetail(name);
+        previousView = savedPrev;
+      } catch (e) { console.error('refreshAccountDetailSafe', e); }
     }
 
     // ── TẢI DỮ LIỆU ──
@@ -5703,6 +5705,7 @@
         // Render từng phần (KHÔNG gọi renderAll vì nó sẽ navigate lại theo localStorage)
         renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
         navigateTo(targetView);
+        if (targetView === 'view-account-detail') refreshAccountDetailSafe();
         showToast('Đang xóa...', 'info');
 
         if (typeof google !== 'undefined' && google.script) {
@@ -5712,6 +5715,7 @@
             showToast('Đã xóa giao dịch', 'success');
             // Render từng phần và giữ nguyên view hiện tại (targetView)
             renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
+            if (targetView === 'view-account-detail') refreshAccountDetailSafe();
             if (targetView === 'view-expense-details') {
               openExpenseDetailsView();
             }
@@ -5822,6 +5826,7 @@
       const targetView = typeof previousView !== 'undefined' && previousView ? previousView : 'view-history';
       renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
       navigateTo(targetView);
+      if (targetView === 'view-account-detail') refreshAccountDetailSafe();
       if (targetView === 'view-expense-details') openExpenseDetailsView();
       showToast('Đang cập nhật...', 'info');
 
