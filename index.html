@@ -717,23 +717,22 @@
 
         <button id="btn-history" onclick="openTheoDoiChiTheoThang()"
           class="w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-600 text-gray-300 hover:border-blue-500 hover:text-white transition-all duration-200">
-          <i class="fa-solid fa-chart-column mr-2"></i>Theo dõi chi theo tháng
+          <i class="fa-solid fa-chart-column mr-2"></i>Biểu đồ chi theo tháng
         </button>
       </div>
 
       <!-- Tình hình thu chi (Thay cho Hạn mức chi) -->
-      <div class="card-glass rounded-2xl p-5 mb-4 cursor-pointer hover:bg-opacity-80 transition"
-        onclick="openTinhHinh(); renderTinhHinh()">
-        <div class="flex justify-between items-center mb-2">
-          <h3 class="font-semibold flex items-center text-lg">
-            Tình hình thu chi
-          </h3>
-          <span class="text-accent-blue text-sm font-medium flex items-center z-10 relative"
-            onclick="event.stopPropagation(); openAllExpensesDetail()">
-            Xem tất cả <i class="fa-solid fa-chevron-right ml-1 text-xs"></i>
-          </span>
+      <div class="card-glass rounded-2xl p-4 mb-4">
+        <div class="flex gap-3">
+          <button onclick="openTinhHinh(); renderTinhHinh()"
+            class="flex-1 min-w-0 py-2.5 px-1 rounded-xl text-xs font-semibold whitespace-nowrap border border-gray-600 text-gray-300 hover:border-blue-500 hover:text-white transition-all duration-200">
+            <i class="fa-solid fa-chart-line mr-1"></i>Biểu đồ Thặng dư mỗi tháng
+          </button>
+          <button id="btn-chi-thang" onclick="openAllExpensesDetail()"
+            class="flex-1 min-w-0 py-2.5 px-1 rounded-xl text-xs font-semibold whitespace-nowrap border border-gray-600 text-gray-300 hover:border-blue-500 hover:text-white transition-all duration-200">
+            <i class="fa-solid fa-list mr-1"></i><span id="btn-chi-thang-label">Chi tháng</span>
+          </button>
         </div>
-        <p class="text-xs text-gray-400">Xem thống kê thu chi qua các tháng bằng biểu đồ trực quan.</p>
       </div>
 
       <!-- Phân tích -->
@@ -5860,6 +5859,8 @@
       const y = d.getFullYear();
       const titleEl = document.getElementById('monthly-expense-title');
       if (titleEl) titleEl.textContent = `Tổng chi tiêu Tháng ${m}/${y}`;
+      const lblChiThang = document.getElementById('btn-chi-thang-label');
+      if (lblChiThang) lblChiThang.textContent = `Chi tháng ${m}`;
 
       const now = new Date();
       const isCurrentMonth = (m === now.getMonth() + 1 && y === now.getFullYear());
@@ -5884,13 +5885,17 @@
       const prevMonthDate = new Date(y, m - 2, 1);
       const pm = prevMonthDate.getMonth() + 1;
       const py = prevMonthDate.getFullYear();
+      // Tháng hiện tại: chỉ so sánh đến đúng ngày hôm nay của tháng trước (cùng kỳ)
+      const prevDaysInMonth = new Date(py, pm, 0).getDate();
+      const cutoffDay = isCurrentMonth ? Math.min(now.getDate(), prevDaysInMonth) : 31;
+      const cmpLabel = isCurrentMonth ? `so với cùng kỳ tháng trước (1–${cutoffDay})` : 'so với tháng trước';
 
       gd.forEach(t => {
         if (!isExpenseType(t.loai) || t.hm === 'Chuyển khoản' || t.hm === 'Tất toán STK' || (t.hm && String(t.hm).toLowerCase() === 'chi dùm')) return;
         const td = parseDateInternal(t.ngay);
         if (!td) return;
         if (td.getMonth() + 1 === m && td.getFullYear() === y) currentMonthTotal += +t.sotien;
-        if (td.getMonth() + 1 === pm && td.getFullYear() === py) prevMonthTotal += +t.sotien;
+        if (td.getMonth() + 1 === pm && td.getFullYear() === py && td.getDate() <= cutoffDay) prevMonthTotal += +t.sotien;
       });
 
       const amtEl = document.getElementById('monthly-expense-amount');
@@ -5904,9 +5909,9 @@
           const diff = currentMonthTotal - prevMonthTotal;
           const pct = ((Math.abs(diff) / prevMonthTotal) * 100).toFixed(1);
           if (diff > 0) {
-            compareEl.innerHTML = `<span class="text-expense-red"><i class="fa-solid fa-arrow-trend-up mr-1"></i>Tăng ${pct}%</span> so với tháng trước`;
+            compareEl.innerHTML = `<span class="text-expense-red"><i class="fa-solid fa-arrow-trend-up mr-1"></i>Tăng ${pct}%</span> ${cmpLabel}`;
           } else if (diff < 0) {
-            compareEl.innerHTML = `<span class="text-income-green"><i class="fa-solid fa-arrow-trend-down mr-1"></i>Giảm ${pct}%</span> so với tháng trước`;
+            compareEl.innerHTML = `<span class="text-income-green"><i class="fa-solid fa-arrow-trend-down mr-1"></i>Giảm ${pct}%</span> ${cmpLabel}`;
           } else {
             compareEl.textContent = 'Bằng tháng trước';
           }
@@ -5977,7 +5982,7 @@
       const chartPanel = document.getElementById('theodoi-chart-panel');
       const backBtn = document.getElementById('theodoi-back-btn');
       const titleEl2 = document.getElementById('theodoi-chart-title');
-      if (titleEl2) titleEl2.textContent = 'Theo dõi chi theo tháng';
+      if (titleEl2) titleEl2.textContent = 'Biểu đồ chi theo tháng';
       const subEl2 = document.getElementById('theodoi-chart-sub');
       if (subEl2) subEl2.textContent = 'Chọn hạng mục để xem biểu đồ';
       if (listPanel) { listPanel.classList.remove('hidden'); }
@@ -6003,7 +6008,7 @@
       if (listPanel) listPanel.classList.remove('hidden');
       if (chartPanel) chartPanel.classList.add('hidden');
       if (backBtn) backBtn.classList.add('hidden');
-      if (titleEl) titleEl.textContent = 'Theo dõi chi theo tháng';
+      if (titleEl) titleEl.textContent = 'Biểu đồ chi theo tháng';
       if (subEl) subEl.textContent = 'Chọn hạng mục để xem biểu đồ';
       if (theoDoiChart) { theoDoiChart.destroy(); theoDoiChart = null; }
     }
