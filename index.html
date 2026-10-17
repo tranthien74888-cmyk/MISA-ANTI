@@ -4310,7 +4310,7 @@
       if (list) {
         list.innerHTML = gd.length ? gd.map(t => {
           return `
-      <div class="bg-dark-input rounded-xl p-3 flex justify-between items-center mb-2" onclick="openTransactionOptions('${t.id}')">
+      <div class="bg-dark-input rounded-xl p-3 flex justify-between items-center mb-2 cursor-pointer hover:bg-opacity-80 transition" onclick="openEditTransaction('${t.id}', '${String(t.tk).replace(/'/g, "\\'")}')">
         <div class="flex items-center">
           <div class="w-10 h-10 ${t.color || 'bg-gray-600'} rounded-full flex items-center justify-center mr-3">
             <i class="fa-solid ${t.icon || 'fa-money-bill'} text-white"></i>
@@ -5690,6 +5690,8 @@
         renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
         if (targetView === 'view-account-detail' && oldTk) {
           openAccountDetail(oldTk);
+        } else if (targetView === 'view-saving-detail' && oldTk) {
+          openSavingDetail(oldTk);
         } else {
           navigateTo(targetView);
         }
@@ -5704,6 +5706,8 @@
             renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
             if (targetView === 'view-account-detail' && oldTk) {
               openAccountDetail(oldTk);
+            } else if (targetView === 'view-saving-detail' && oldTk) {
+              openSavingDetail(oldTk);
             } else if (targetView === 'view-expense-details') {
               openExpenseDetailsView();
             }
@@ -5815,6 +5819,8 @@
       renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
       if (targetView === 'view-account-detail' && tk) {
         openAccountDetail(tk);
+      } else if (targetView === 'view-saving-detail' && tk) {
+        openSavingDetail(tk);
       } else {
         navigateTo(targetView);
       }
@@ -5829,6 +5835,8 @@
           renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
           if (targetView === 'view-account-detail' && tk) {
             openAccountDetail(tk);
+          } else if (targetView === 'view-saving-detail' && tk) {
+            openSavingDetail(tk);
           }
         }).withFailureHandler(function (e) {
           showToast('Lỗi: ' + e.message, 'error');
