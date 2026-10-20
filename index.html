@@ -646,7 +646,8 @@
           </div>
         </div>
         <div class="flex items-center space-x-3">
-          <button id="btn-refresh-data" class="text-gray-400 hover:text-white transition-colors" onclick="refreshDataAnim(this)">
+          <button id="btn-refresh-data" class="text-gray-400 hover:text-white transition-colors"
+            onclick="refreshDataAnim(this)">
             <i class="fa-solid fa-rotate-right"></i>
           </button>
           <span id="live-clock" class="text-gray-400 text-sm font-medium"></span>
@@ -726,7 +727,7 @@
         <div class="flex gap-3">
           <button onclick="openTinhHinh(); renderTinhHinh()"
             class="flex-1 min-w-0 py-2.5 px-1 rounded-xl text-xs font-semibold whitespace-nowrap border border-gray-600 text-gray-300 hover:border-blue-500 hover:text-white transition-all duration-200">
-            <i class="fa-solid fa-chart-line mr-1"></i>Biểu đồ Thặng dư 
+            <i class="fa-solid fa-chart-line mr-1"></i>Biểu đồ Thặng dư
           </button>
           <button id="btn-chi-thang" onclick="openAllExpensesDetail()"
             class="flex-1 min-w-0 py-2.5 px-1 rounded-xl text-xs font-semibold whitespace-nowrap border border-gray-600 text-gray-300 hover:border-blue-500 hover:text-white transition-all duration-200">
@@ -1049,21 +1050,24 @@
 
       <!-- Header -->
       <div class="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
-        <button id="theodoi-back-btn" onclick="backToTheoDoiList()" class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 hidden">
+        <button id="theodoi-back-btn" onclick="backToTheoDoiList()"
+          class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 hidden">
           <i class="fa-solid fa-arrow-left text-sm"></i>
         </button>
         <div class="flex-1">
           <h3 id="theodoi-chart-title" class="text-base font-bold">Theo d&otilde;i chi theo th&aacute;ng</h3>
           <p id="theodoi-chart-sub" class="text-gray-400 text-xs mt-0.5"></p>
         </div>
-        <button onclick="closeTheoDoiModal()" class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition">
+        <button onclick="closeTheoDoiModal()"
+          class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition">
           <i class="fa-solid fa-times text-sm"></i>
         </button>
       </div>
 
       <!-- Panel: Danh sach hang muc -->
       <div id="theodoi-list-panel" class="flex-1 overflow-y-auto px-3 pb-5">
-        <p class="text-gray-400 text-xs px-2 pb-2">Ch&#7885;n h&#7841;ng m&#7ee5c mu&#7889;n xem xu h&#432;&#7899;ng chi:</p>
+        <p class="text-gray-400 text-xs px-2 pb-2">Ch&#7885;n h&#7841;ng m&#7ee5c mu&#7889;n xem xu h&#432;&#7899;ng
+          chi:</p>
         <div id="theodoi-cat-list" class="space-y-1">
           <!-- Render by JS -->
         </div>
@@ -1079,7 +1083,8 @@
         <div class="flex items-center space-x-4 mb-4 text-xs text-gray-400">
           <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#1abc9c] mr-1"></span>Gi&#7843;m</span>
           <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#e7515a] mr-1"></span>T&#259;ng</span>
-          <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#1e90ff] mr-1"></span>Th&aacute;ng hi&#7879;n t&#7841;i</span>
+          <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#1e90ff] mr-1"></span>Th&aacute;ng hi&#7879;n
+            t&#7841;i</span>
         </div>
         <!-- Summary -->
         <div id="theodoi-summary"></div>
@@ -1157,7 +1162,8 @@
   <div id="add-acc-modal" class="fixed inset-0 z-[110] hidden items-end justify-center"
     style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
     <div class="bg-dark-card w-full max-w-md rounded-t-3xl p-6 modal-slide-up" style="max-height:90vh;overflow-y:auto;">
-      <div class="flex justify-between items-center mb-5 sticky top-0 bg-dark-card z-20 py-4 -mt-6 -mx-6 px-6 rounded-t-3xl border-b border-gray-700/50">
+      <div
+        class="flex justify-between items-center mb-5 sticky top-0 bg-dark-card z-20 py-4 -mt-6 -mx-6 px-6 rounded-t-3xl border-b border-gray-700/50">
         <h3 class="text-lg font-bold">Thêm tài khoản mới</h3>
         <button onclick="closeAddAccountModal()"
           class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition">
@@ -1420,7 +1426,7 @@
       <!-- Header -->
       <div class="flex justify-between items-center mb-6">
         <button
-          onclick="navigateTo(typeof previousView !== 'undefined' && previousView ? previousView : 'view-history')"
+          onclick="navigateTo(typeof window.lastTxSourceView !== 'undefined' && window.lastTxSourceView && window.lastTxSourceView !== 'view-edit-transaction-v2' ? window.lastTxSourceView : (typeof previousView !== 'undefined' && previousView && previousView !== 'view-edit-transaction-v2' ? previousView : 'view-history'))"
           class="w-9 h-9 flex items-center justify-center text-white hover:text-gray-300 transition text-xl">
           <i class="fa-solid fa-arrow-left"></i>
         </button>
@@ -1526,7 +1532,9 @@
     onclick="this.classList.add('hidden'); this.classList.remove('flex');">
     <input type="hidden" id="maturity-saving-name">
     <div class="bg-dark-card w-11/12 max-w-sm rounded-3xl p-6 relative" onclick="event.stopPropagation()">
-      <button onclick="document.getElementById('maturity-modal').classList.add('hidden'); document.getElementById('maturity-modal').classList.remove('flex');" class="absolute top-4 right-4 w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition">
+      <button
+        onclick="document.getElementById('maturity-modal').classList.add('hidden'); document.getElementById('maturity-modal').classList.remove('flex');"
+        class="absolute top-4 right-4 w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition">
         <i class="fa-solid fa-times text-sm"></i>
       </button>
       <div
@@ -1695,9 +1703,11 @@
 
     <div class="flex space-x-3 mt-4 mb-4">
       <button onclick="saveEditSavingV2()"
-        class="flex-1 bg-accent-blue hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl text-base shadow-sm">Lưu lại</button>
+        class="flex-1 bg-accent-blue hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl text-base shadow-sm">Lưu
+        lại</button>
       <button onclick="openMaturityModal(document.getElementById('edit-saving-oldname-v2').value)"
-        class="flex-1 bg-[#10b981] hover:bg-green-600 text-white font-bold py-3.5 rounded-xl text-base shadow-lg">Tất toán</button>
+        class="flex-1 bg-[#10b981] hover:bg-green-600 text-white font-bold py-3.5 rounded-xl text-base shadow-lg">Tất
+        toán</button>
     </div>
 
     <div class="flex space-x-3 mb-6">
@@ -1881,7 +1891,9 @@
         </div>
         <div>
           <label class="text-xs text-gray-400 mb-1 block">Loại giao dịch</label>
-          <select id="filter-type" class="w-full bg-dark-input rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-blue appearance-none" onchange="updateFilterCategoryOptions()">
+          <select id="filter-type"
+            class="w-full bg-dark-input rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-blue appearance-none"
+            onchange="updateFilterCategoryOptions()">
             <option value="all">Tất cả (Thu & Chi)</option>
             <option value="Chi">Chỉ xem Chi tiền</option>
             <option value="Thu">Chỉ xem Thu tiền</option>
@@ -1889,7 +1901,8 @@
         </div>
         <div>
           <label class="text-xs text-gray-400 mb-1 block">Hạng mục</label>
-          <select id="filter-category" class="w-full bg-dark-input rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-blue appearance-none">
+          <select id="filter-category"
+            class="w-full bg-dark-input rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-blue appearance-none">
             <option value="all">Tất cả hạng mục</option>
           </select>
         </div>
@@ -1925,7 +1938,8 @@
   <div id="add-cat-modal" class="fixed inset-0 z-[110] hidden items-end justify-center"
     style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
     <div class="bg-dark-card w-full max-w-md rounded-t-3xl p-6 modal-slide-up h-[85vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-5 sticky top-0 bg-dark-card z-20 py-4 -mt-6 -mx-6 px-6 rounded-t-3xl border-b border-gray-700/50">
+      <div
+        class="flex justify-between items-center mb-5 sticky top-0 bg-dark-card z-20 py-4 -mt-6 -mx-6 px-6 rounded-t-3xl border-b border-gray-700/50">
         <h3 class="text-lg font-bold">Thêm hạng mục mới</h3>
         <button onclick="closeAddCategoryModal()"
           class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition"><i
@@ -2105,14 +2119,14 @@
     // ── ĐIỀU HƯỚNG ──
     function navigateTo(viewId) {
       const currentVisible = document.querySelector('.view-screen:not(.hidden)');
-      if (currentVisible && currentVisible.id !== 'view-add-transaction') {
+      if (currentVisible && currentVisible.id !== 'view-add-transaction' && currentVisible.id !== 'view-edit-transaction-v2' && currentVisible.id !== 'view-edit-account-v2') {
         previousView = currentVisible.id;
       }
       try {
-        if (viewId !== 'view-add-transaction') {
+        if (viewId !== 'view-add-transaction' && viewId !== 'view-edit-transaction-v2' && viewId !== 'view-edit-account-v2') {
           localStorage.setItem('misa_last_view', viewId);
         }
-      } catch (e) {}
+      } catch (e) { }
       document.querySelectorAll('.view-screen').forEach(s => s.classList.add('hidden'));
       const t = document.getElementById(viewId);
       if (t) t.classList.remove('hidden');
@@ -2261,7 +2275,7 @@
       renderAccounts();
       renderHistory();
       renderAccountModal();
-      
+
       try {
         const lastView = localStorage.getItem('misa_last_view');
         if (lastView && document.getElementById(lastView)) {
@@ -2975,7 +2989,7 @@
       // Reset nút Tất cả
       const btnAll = document.getElementById('btn-all-cats');
       if (btnAll) btnAll.innerHTML = 'Tất cả <i class="fa-solid fa-chevron-right text-xs"></i>';
-      
+
       if (typeof saveDraft === 'function') saveDraft();
     }
 
@@ -3445,11 +3459,11 @@
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(res => {
-            if (!res) { showToast('Lỗi ngầm: Dữ liệu bị rỗng!', 'error'); if(cb) cb(); return; }
+            if (!res) { showToast('Lỗi ngầm: Dữ liệu bị rỗng!', 'error'); if (cb) cb(); return; }
             if (res.backendError) {
               showToast('Lỗi Server ngầm: ' + res.backendError, 'error');
               console.error(res.stack);
-              if(cb) cb();
+              if (cb) cb();
               return;
             }
             const newData = typeof res === 'string' ? JSON.parse(res) : res;
@@ -3506,16 +3520,16 @@
             renderAccounts();
             renderHistory();
             renderAccountModal();
-            if(cb) cb();
+            if (cb) cb();
           })
           .withFailureHandler(e => {
             showToast('Lỗi đồng bộ ngầm: ' + e.message, 'error');
-            if(cb) cb();
+            if (cb) cb();
           })
           .getAppData();
       } else {
         renderAll();
-        if(cb) cb();
+        if (cb) cb();
       }
     }
 
@@ -3526,9 +3540,9 @@
       }
       const icon = btn.querySelector('i');
       if (icon) icon.classList.add('animate-spin');
-      try { localStorage.removeItem('misa_app_data_cache'); } catch(e) {}
+      try { localStorage.removeItem('misa_app_data_cache'); } catch (e) { }
       window._lastSaveTxTime = 0;
-      loadDataSilent(function() {
+      loadDataSilent(function () {
         if (icon) icon.classList.remove('animate-spin');
         showToast('Đã làm mới dữ liệu', 'success');
       });
@@ -3539,7 +3553,7 @@
       const desc = document.getElementById('transaction-desc');
       const dateInput = document.getElementById('transaction-date-input');
       const typeSelect = document.getElementById('transaction-type-select');
-      
+
       const draft = {
         amount: amt ? amt.value : '',
         desc: desc ? desc.value : '',
@@ -3548,11 +3562,11 @@
         accountIndex: selectedAccountIndex,
         type: typeSelect ? typeSelect.value : 'Chi'
       };
-      try { localStorage.setItem('misa_form_draft', JSON.stringify(draft)); } catch(e) {}
+      try { localStorage.setItem('misa_form_draft', JSON.stringify(draft)); } catch (e) { }
     }
 
     function clearDraft() {
-      try { localStorage.removeItem('misa_form_draft'); } catch(e) {}
+      try { localStorage.removeItem('misa_form_draft'); } catch (e) { }
     }
 
     function resetForm() {
@@ -3562,10 +3576,10 @@
       const dateInput = document.getElementById('transaction-date-input');
       const lbl = document.getElementById('selected-category-label');
       const typeSelect = document.getElementById('transaction-type-select');
-      
+
       let draft = null;
-      try { draft = JSON.parse(localStorage.getItem('misa_form_draft')); } catch(e) {}
-      
+      try { draft = JSON.parse(localStorage.getItem('misa_form_draft')); } catch (e) { }
+
       if (draft) {
         if (typeSelect && draft.type) {
           typeSelect.value = draft.type;
@@ -3592,7 +3606,7 @@
             dateInput.value = todayStr;
           }
         }
-        
+
         selectedCategory = draft.category || '';
         document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('selected'));
         if (lbl) lbl.textContent = selectedCategory || 'Chọn hạng mục';
@@ -4032,7 +4046,7 @@
         // Bỏ qua các khoản thu/chi dùm và các giao dịch luân chuyển nội bộ
         const loai = t.loai ? String(t.loai).toLowerCase().trim() : '';
         const hm = t.hm ? String(t.hm).toLowerCase().trim() : '';
-        
+
         if (hm === 'thu dùm' || hm === 'chi dùm' || hm === 'chuyển khoản' || hm === 'nhận tiền' || hm === 'tất toán stk' || loai === 'chuyển khoản' || loai === 'chuyển tiền') {
           return;
         }
@@ -4385,7 +4399,7 @@
       const ghiChu = 'Goc: ' + fmt(principal) + ', Lai: ' + fmt(interest);
       document.getElementById('maturity-modal').classList.add('hidden');
       document.getElementById('maturity-modal').classList.remove('flex');
-      
+
       // Optimistic UI
       if (appData && appData.taiKhoan) {
         appData.taiKhoan = appData.taiKhoan.filter(a => a.ten !== tenTK);
@@ -4401,8 +4415,8 @@
         google.script.run
           .withSuccessHandler(() => {
             google.script.run
-              .withSuccessHandler((resDel) => { 
-                showToast('Tất toán thành công!', 'success'); 
+              .withSuccessHandler((resDel) => {
+                showToast('Tất toán thành công!', 'success');
                 if (resDel) appData = typeof resDel === 'string' ? JSON.parse(resDel) : resDel;
                 renderAll();
               })
@@ -4438,7 +4452,7 @@
       const kyhanEl = document.getElementById('new-acc-kyhan');
       if (kyhanEl) kyhanEl.value = tk.kyHan || '';
       const ngayguiEl = document.getElementById('new-acc-ngaygui');
-      if (ngayguiEl) ngayguiEl.value = today.getDate().toString().padStart(2,'0') + '/' + (today.getMonth()+1).toString().padStart(2,'0') + '/' + today.getFullYear();
+      if (ngayguiEl) ngayguiEl.value = today.getDate().toString().padStart(2, '0') + '/' + (today.getMonth() + 1).toString().padStart(2, '0') + '/' + today.getFullYear();
       selAccIcon = tk.icon || 'fa-piggy-bank';
       selAccColor = tk.color || 'bg-pink-500';
       renderAddAccOptions();
@@ -4599,9 +4613,9 @@
       if (!catSel) return;
       let html = '<option value="all">Tất cả hạng mục</option>';
       let cats = [];
-      if (type === 'all' || type === 'Chi') cats = cats.concat(CATS.Chi.map(c => ({...c, type: 'Chi'})));
-      if (type === 'all' || type === 'Thu') cats = cats.concat(CATS.Thu.map(c => ({...c, type: 'Thu'})));
-      
+      if (type === 'all' || type === 'Chi') cats = cats.concat(CATS.Chi.map(c => ({ ...c, type: 'Chi' })));
+      if (type === 'all' || type === 'Thu') cats = cats.concat(CATS.Thu.map(c => ({ ...c, type: 'Thu' })));
+
       html += cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
       catSel.innerHTML = html;
     }
@@ -4675,7 +4689,7 @@
       if (!appData) return;
       const gd = (appData.giaoDich || []).filter(t => {
         if (!isExpenseType(t.loai) && !isIncomeType(t.loai)) return false;
-        
+
         if (typeFilter === 'Chi' && !isExpenseType(t.loai)) return false;
         if (typeFilter === 'Thu' && !isIncomeType(t.loai)) return false;
         if (catFilter !== 'all' && t.hm !== catFilter) return false;
@@ -5310,7 +5324,7 @@
         if (fTk) fTk.soDu = Number(fTk.soDu) - amount;
         if (tTk) tTk.soDu = Number(tTk.soDu) + amount;
       }
-      
+
       const dateInput = document.getElementById('transfer-date-input').value;
       let targetDateStr = '';
       if (dateInput) {
@@ -5333,10 +5347,10 @@
 
         const tx1 = { id: 'temp-' + Date.now() + '-1', ngay: targetDateStr, thu2: 'Hôm nay', loai: 'Chi', hm: 'Chuyển khoản', sotien: amount, tk: fromAcc, ghiChu: 'Chuyển sang ' + toAcc + (desc ? ' • ' + desc : ''), icon: 'fa-exchange-alt', color: 'bg-blue-500', timestamp: isoStr };
         const tx2 = { id: 'temp-' + Date.now() + '-2', ngay: targetDateStr, thu2: 'Hôm nay', loai: 'Thu', hm: 'Nhận tiền', sotien: amount, tk: toAcc, ghiChu: 'Nhận từ ' + fromAcc + (desc ? ' • ' + desc : ''), icon: 'fa-exchange-alt', color: 'bg-green-500', timestamp: isoStr };
-        
+
         appData.giaoDich.unshift(tx2);
         appData.giaoDich.unshift(tx1);
-      } catch(e) { console.error('Lỗi UI update', e); }
+      } catch (e) { console.error('Lỗi UI update', e); }
 
       showLoading();
       // Fallback: tự ẩn spinner sau 30 giây nếu backend không phản hồi
@@ -5346,7 +5360,7 @@
           clearTimeout(_transferTimeout);
           hideLoading();
           showToast('Chuyển khoản thành công!', 'success');
-          
+
           // Cập nhật lại dữ liệu từ server để hiển thị trong lịch sử
           google.script.run.withSuccessHandler(function (d) {
             if (d) {
@@ -5569,6 +5583,11 @@
     };
 
     window.openEditTransaction = function (id, tk) {
+      const curVis = document.querySelector('.view-screen:not(.hidden)');
+      if (curVis && curVis.id !== 'view-edit-transaction-v2' && curVis.id !== 'view-add-transaction') {
+        window.lastTxSourceView = curVis.id;
+        previousView = curVis.id;
+      }
       const t = (appData.giaoDich || []).find(x => String(x.id) === String(id));
       if (!t) return;
 
@@ -5669,12 +5688,14 @@
         const id = document.getElementById('edit-tx-id-v2').value;
         const oldTk = document.getElementById('edit-tx-oldtk-v2').value;
         // Lưu lại view đích TRƯỚC khi navigate (để dùng trong callback)
-        const targetView = (typeof previousView !== 'undefined' && previousView && previousView !== 'view-edit-tx-v2')
-          ? previousView : 'view-history';
+        const targetView = (typeof window.lastTxSourceView !== 'undefined' && window.lastTxSourceView && window.lastTxSourceView !== 'view-edit-transaction-v2')
+          ? window.lastTxSourceView
+          : ((typeof previousView !== 'undefined' && previousView && previousView !== 'view-edit-transaction-v2' && previousView !== 'view-edit-tx-v2')
+            ? previousView : 'view-history');
 
         // Optimistic update & Hoàn tiền lại số dư
         if (appData && appData.giaoDich) {
-          const txToDelete = appData.giaoDich.find(t => t.id === id);
+          const txToDelete = appData.giaoDich.find(t => String(t.id) === String(id));
           if (txToDelete && appData.taiKhoan) {
             const acc = appData.taiKhoan.find(a => a.ten === txToDelete.tk);
             if (acc) {
@@ -5682,9 +5703,9 @@
               else acc.soDu -= Number(txToDelete.sotien);
             }
           }
-          appData.giaoDich = appData.giaoDich.filter(t => t.id !== id);
+          appData.giaoDich = appData.giaoDich.filter(t => String(t.id) !== String(id));
         }
-        
+
         // Render từng phần (KHÔNG gọi renderAll vì nó sẽ navigate lại theo localStorage)
         renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
         if (targetView === 'view-account-detail' && oldTk) {
@@ -5693,6 +5714,14 @@
           openSavingDetail(oldTk);
         } else {
           navigateTo(targetView);
+        }
+        if (targetView === 'view-expense-details') openExpenseDetailsView();
+        else if (targetView === 'view-category-detail') {
+          if (document.getElementById('cat-detail-title')?.textContent?.includes('Tất Cả Khoản Chi')) {
+            openAllExpensesDetail();
+          } else {
+            renderCategoryDetail();
+          }
         }
         showToast('Đang xóa...', 'info');
 
@@ -5709,6 +5738,14 @@
               openSavingDetail(oldTk);
             } else if (targetView === 'view-expense-details') {
               openExpenseDetailsView();
+            } else if (targetView === 'view-category-detail') {
+              if (document.getElementById('cat-detail-title')?.textContent?.includes('Tất Cả Khoản Chi')) {
+                openAllExpensesDetail();
+              } else {
+                renderCategoryDetail();
+              }
+            } else {
+              navigateTo(targetView);
             }
           }).withFailureHandler(function (e) {
             showToast('Lỗi: ' + e.message, 'error');
@@ -5789,7 +5826,7 @@
         thu2: 'Hôm nay',
         icon: catInfo.icon, color: catInfo.color
       };
-      
+
       // Optimistic UI Cập nhật giao dịch
       if (appData && appData.giaoDich && appData.taiKhoan) {
         const txToEdit = appData.giaoDich.find(t => String(t.id) === String(id));
@@ -5814,7 +5851,9 @@
         }
       }
 
-      const targetView = typeof previousView !== 'undefined' && previousView ? previousView : 'view-history';
+      const targetView = (typeof window.lastTxSourceView !== 'undefined' && window.lastTxSourceView && window.lastTxSourceView !== 'view-edit-transaction-v2')
+        ? window.lastTxSourceView
+        : ((typeof previousView !== 'undefined' && previousView && previousView !== 'view-edit-transaction-v2') ? previousView : 'view-history');
       renderStats(); renderChart(); renderHanMuc(); renderAccounts(); renderHistory(); renderAccountModal();
       if (targetView === 'view-account-detail' && tk) {
         openAccountDetail(tk);
@@ -5824,6 +5863,13 @@
         navigateTo(targetView);
       }
       if (targetView === 'view-expense-details') openExpenseDetailsView();
+      else if (targetView === 'view-category-detail') {
+        if (document.getElementById('cat-detail-title')?.textContent?.includes('Tất Cả Khoản Chi')) {
+          openAllExpensesDetail();
+        } else {
+          renderCategoryDetail();
+        }
+      }
       showToast('Đang cập nhật...', 'info');
 
       if (typeof google !== 'undefined' && google.script) {
@@ -6074,7 +6120,7 @@
       // Tạo gradient color dựa trên trend
       const bgColors = values.map((v, i) => {
         if (i === values.length - 1) return '#1e90ff'; // Tháng hiện tại màu xanh nổi
-        if (v > (i > 0 ? values[i-1] : v)) return '#e7515a'; // Tăng so với tháng trước
+        if (v > (i > 0 ? values[i - 1] : v)) return '#e7515a'; // Tăng so với tháng trước
         return '#1abc9c'; // Giảm hoặc bằng
       });
 
@@ -6181,7 +6227,7 @@
     hideLoading();
 
     // Tự động quét dữ liệu khi mở app / quay lại tab (PWA/Mobile)
-    document.addEventListener('visibilitychange', function() {
+    document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'visible') {
         if (typeof loadDataSilent === 'function') {
           // Nếu vừa lưu giao dịch mới trong 30s, KHÔNG reload để tránh GAS trả data cũ ghi đè
