@@ -2463,7 +2463,7 @@
       const tk2 = tk.filter(a => String(a.loai || '').toLowerCase().includes('tiet'));
       const tkInvest = tk.filter(a => String(a.loai || '').toLowerCase() === 'chungkhoan');
 
-      const chiTotal = chi.reduce((s, a) => {
+      const chiTotal = chi.filter(a => String(a.loai || '').toLowerCase() !== 'ngoaite').reduce((s, a) => {
         let val = +a.soDu || 0;
         if (String(a.loai || '').toLowerCase() === 'ngoaite') val = val * (a.tigia || 1);
         return s + val;
