@@ -713,10 +713,10 @@
 
         <!-- Biểu đồ Donut + Legend -->
         <div class="flex items-center mb-5">
-          <div class="relative flex-shrink-0" style="width: 110px; height: 110px;">
+          <div class="relative w-full" style="height: 200px;">
             <canvas id="expense-chart"></canvas>
           </div>
-          <div class="ml-4 flex-1 space-y-1.5" id="chart-legend">
+          <div class="ml-4 flex-1 space-y-1.5" id="chart-legend" style="display:none">
             <!-- Render by JS -->
           </div>
         </div>
@@ -2373,12 +2373,12 @@
         afterDatasetsDraw(chart) {
           const c = chart.ctx;
           c.save();
-          c.font = 'bold 10px sans-serif';
+          c.font = 'bold 9px sans-serif';
           c.textAlign = 'center';
           c.fillStyle = '#e5e7eb';
           chart.getDatasetMeta(0).data.forEach((bar, idx) => {
             const v = chart.data.datasets[0].data[idx];
-            c.fillText((v / 1000000).toFixed(1) + 'tr', bar.x, bar.y - 4);
+            c.fillText(v >= 1000000 ? (v / 1000000).toFixed(1) + 'tr' : Math.round(v / 1000) + 'k', bar.x, bar.y - 4);
           });
           c.restore();
         }
@@ -2387,14 +2387,14 @@
         plugins: [barValuePlugin],
         type: 'bar',
         data: {
-          labels: sorted.slice(0, 5).map(([k]) => k),
-          datasets: [{ data: sorted.slice(0, 5).map(([, v]) => v), backgroundColor: colors.slice(0, 5), borderWidth: 0, borderRadius: 4, barPercentage: 0.8, categoryPercentage: 0.9 }]
+          labels: sorted.map(([k]) => k.length > 8 ? k.slice(0, 8) + '..' : k),
+          datasets: [{ data: sorted.map(([, v]) => v), backgroundColor: sorted.map((_, i) => colors[i % colors.length]), borderWidth: 0, borderRadius: 4, barPercentage: 0.8, categoryPercentage: 0.9 }]
         },
         options: {
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.label + ': ' + fmt(c.raw) } } },
           maintainAspectRatio: false,
           layout: { padding: { top: 14 } },
-          scales: { x: { display: false }, y: { display: false, beginAtZero: true } }
+          scales: { x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 }, maxRotation: 60, minRotation: 45, autoSkip: false } }, y: { display: false, beginAtZero: true } }
         }
       });
 
