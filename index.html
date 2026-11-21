@@ -2358,7 +2358,7 @@
     let myChart = null;
     function renderChart() {
       if (!appData) return;
-      const gd = (appData.giaoDich || []).filter(t => isExpenseType(t.loai) && !(t.hm && String(t.hm).toLowerCase() === 'chi dùm'));
+      const gd = (appData.giaoDich || []).filter(t => isExpenseType(t.loai) && !(t.hm && ['chi dùm', 'chuyển khoản', 'nhận tiền', 'tất toán stk'].includes(String(t.hm).toLowerCase())));
       const totals = {};
       gd.forEach(t => { totals[t.hm] = (totals[t.hm] || 0) + +t.sotien; });
       const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
@@ -2368,7 +2368,23 @@
       const ctx = document.getElementById('expense-chart');
       if (!ctx) return;
       if (myChart) myChart.destroy();
+      const barValuePlugin = {
+        id: 'barValueLabels',
+        afterDatasetsDraw(chart) {
+          const c = chart.ctx;
+          c.save();
+          c.font = 'bold 10px sans-serif';
+          c.textAlign = 'center';
+          c.fillStyle = '#e5e7eb';
+          chart.getDatasetMeta(0).data.forEach((bar, idx) => {
+            const v = chart.data.datasets[0].data[idx];
+            c.fillText((v / 1000000).toFixed(1) + 'tr', bar.x, bar.y - 4);
+          });
+          c.restore();
+        }
+      };
       myChart = new Chart(ctx, {
+        plugins: [barValuePlugin],
         type: 'bar',
         data: {
           labels: sorted.slice(0, 5).map(([k]) => k),
@@ -2377,6 +2393,7 @@
         options: {
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.label + ': ' + fmt(c.raw) } } },
           maintainAspectRatio: false,
+          layout: { padding: { top: 14 } },
           scales: { x: { display: false }, y: { display: false, beginAtZero: true } }
         }
       });
@@ -4032,6 +4049,34 @@
     }
 
     // ── TăŒNH HăŒNH THU CHI (BIỂU ĐỒ) ──
+    // Phản hồi chạm tức thì (iOS cần touchstart để kích hoạt :active) + điều hướng ngay khi nhả tay
+    (function () {
+      const SEL = '[onclick*="navigateTo"], [onclick*="goBack"], [onclick*="backTo"]';
+      let startX = 0, startY = 0, moved = false, target = null;
+      document.addEventListener('touchstart', function (e) {
+        const el = e.target.closest ? e.target.closest(SEL) : null;
+        target = el; moved = false;
+        if (el) {
+          startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+          el.style.transform = 'scale(0.85)'; el.style.opacity = '0.6';
+        }
+      }, { passive: true, capture: true });
+      document.addEventListener('touchmove', function (e) {
+        if (!target) return;
+        if (Math.abs(e.touches[0].clientX - startX) > 10 || Math.abs(e.touches[0].clientY - startY) > 10) {
+          moved = true; target.style.transform = ''; target.style.opacity = '';
+        }
+      }, { passive: true, capture: true });
+      document.addEventListener('touchend', function (e) {
+        if (!target) return;
+        const el = target; target = null;
+        setTimeout(function () { el.style.transform = ''; el.style.opacity = ''; }, 120);
+        if (moved || el.tagName === 'INPUT' || el.tagName === 'SELECT') return;
+        e.preventDefault();
+        el.click();
+      }, { passive: false, capture: true });
+    })();
+
     let currentCatTab = 'Chi';
     let selCatIcon = ACC_ICONS[0];
     let selCatColor = ACC_COLORS[0];
@@ -4094,7 +4139,7 @@
       const shortSurplus = v => {
         const sign = v < 0 ? '-' : '';
         const a = Math.abs(v);
-        if (a >= 1000000) return sign + (a / 1000000).toFixed(1).replace('.', ',') + 'tr';
+        if (a >= 1000000) return sign + (a / 1000000).toFixed(1) + 'tr';
         if (a >= 1000) return sign + Math.round(a / 1000) + 'k';
         return sign + Math.round(a);
       };
