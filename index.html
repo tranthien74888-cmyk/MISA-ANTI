@@ -49,11 +49,24 @@
 
     /* ─── SPA SCREEN TRANSITIONS ─── */
     .view-screen {
-      animation: fadeSlideIn 0.28s ease-out forwards;
+      animation: fadeSlideIn 0.12s ease-out forwards;
     }
 
     .view-screen.hidden {
       display: none !important;
+    }
+
+    /* Phản hồi chạm tức thì cho nút điều hướng / trở về */
+    button, [onclick], .nav-btn {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    [onclick*="navigateTo"]:active, [onclick*="goBack"]:active, [onclick*="backTo"]:active {
+      transform: scale(0.85);
+      opacity: 0.6;
+      background-color: rgba(255, 255, 255, 0.15);
+      transition: none;
     }
 
     @keyframes fadeSlideIn {
@@ -561,11 +574,6 @@
           document.write('<style>#pin-lock-screen { display: none !important; }</style>');
           return;
         }
-        var search = window.location.search || '';
-        if (search.includes('pin=211174') || search.includes('auth=211174') || search.includes('key=211174')) {
-          document.write('<style>#pin-lock-screen { display: none !important; }</style>');
-          return;
-        }
         var saved = '';
         try { saved = localStorage.getItem('misa_auth_token') || ''; } catch (e) { }
         if (!saved) {
@@ -707,9 +715,6 @@
         <div class="flex items-center mb-5">
           <div class="relative flex-shrink-0" style="width: 110px; height: 110px;">
             <canvas id="expense-chart"></canvas>
-            <div class="absolute inset-0 flex items-center justify-center">
-              <span class="text-xs text-gray-400 text-center leading-tight">Chi<br>tiêu</span>
-            </div>
           </div>
           <div class="ml-4 flex-1 space-y-1.5" id="chart-legend">
             <!-- Render by JS -->
@@ -769,6 +774,14 @@
           <i class="fa-solid fa-chevron-right text-gray-400 text-sm"></i>
         </div>
         <div class="space-y-3" id="accounts-list"><!-- Render by JS --></div>
+      </div>
+
+      <!-- Ngoại tệ -->
+      <div class="card-glass rounded-2xl p-5 mb-4" id="forex-section" style="display: none;">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-semibold" id="forex-count-title">Ngoại tệ</h2>
+        </div>
+        <div class="space-y-3" id="forex-list"></div>
       </div>
 
       <!-- Tài khoản đầu tư (Chứng khoán) -->
@@ -1784,22 +1797,10 @@
       </div>
     </div>
 
-    <div class="flex overflow-x-auto border-b border-gray-800 bg-dark-card px-2">
-      <div
-        class="px-4 py-3 text-gray-400 font-medium text-sm whitespace-nowrap cursor-pointer hover:text-white transition">
-        Hiện tại</div>
-      <div
-        class="px-4 py-3 text-accent-blue font-bold text-sm whitespace-nowrap cursor-pointer border-b-2 border-accent-blue">
-        Tháng</div>
-      <div
-        class="px-4 py-3 text-gray-400 font-medium text-sm whitespace-nowrap cursor-pointer hover:text-white transition">
-        Quý</div>
-      <div
-        class="px-4 py-3 text-gray-400 font-medium text-sm whitespace-nowrap cursor-pointer hover:text-white transition">
-        Năm</div>
-      <div
-        class="px-4 py-3 text-gray-400 font-medium text-sm whitespace-nowrap cursor-pointer hover:text-white transition">
-        Tuỳ chỉnh</div>
+    <div class="flex overflow-x-auto border-b border-gray-800 bg-dark-card px-2" id="tinhhinh-tabs">
+      <div id="th-tab-thang" onclick="setTinhHinhMode('thang')" class="px-4 py-3 text-accent-blue font-bold text-sm whitespace-nowrap cursor-pointer border-b-2 border-accent-blue">Tháng</div>
+      <div id="th-tab-quy" onclick="setTinhHinhMode('quy')" class="px-4 py-3 text-gray-400 font-medium text-sm whitespace-nowrap cursor-pointer hover:text-white transition">Quý</div>
+      <div id="th-tab-nam" onclick="setTinhHinhMode('nam')" class="px-4 py-3 text-gray-400 font-medium text-sm whitespace-nowrap cursor-pointer hover:text-white transition">Năm</div>
     </div>
 
     <div class="bg-dark-card p-4 border-b border-gray-800">
@@ -2065,15 +2066,6 @@
 
       // Server-side auth check (For iOS Safari ITP bypass)
       if (typeof isPreAuthServer !== 'undefined' && isPreAuthServer) {
-        try { localStorage.setItem('misa_auth_token', CORRECT_PIN_HASH); } catch (e) { }
-        if (lock) lock.style.display = 'none';
-        loadData();
-        return;
-      }
-
-      // Client-side URL check: nếu URL có pin=211174, mở app luôn
-      var m = window.location.search.match(/[?&](?:pin|auth|key)=([^&]*)/);
-      if (m && m[1] === '211174') {
         try { localStorage.setItem('misa_auth_token', CORRECT_PIN_HASH); } catch (e) { }
         if (lock) lock.style.display = 'none';
         loadData();
@@ -2377,12 +2369,16 @@
       if (!ctx) return;
       if (myChart) myChart.destroy();
       myChart = new Chart(ctx, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
-          labels: sorted.map(([k]) => k),
-          datasets: [{ data: sorted.map(([, v]) => v), backgroundColor: colors, borderWidth: 0, cutout: '68%' }]
+          labels: sorted.slice(0, 5).map(([k]) => k),
+          datasets: [{ data: sorted.slice(0, 5).map(([, v]) => v), backgroundColor: colors.slice(0, 5), borderWidth: 0, borderRadius: 4, barPercentage: 0.8, categoryPercentage: 0.9 }]
         },
-        options: { plugins: { legend: { display: false } }, maintainAspectRatio: false }
+        options: {
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.label + ': ' + fmt(c.raw) } } },
+          maintainAspectRatio: false,
+          scales: { x: { display: false }, y: { display: false, beginAtZero: true } }
+        }
       });
 
       const legend = document.getElementById('chart-legend');
@@ -2507,9 +2503,9 @@
         el.textContent = fmt(totalAssets);
       });
 
-      const accountsHtml = chi.map((a, i) => {
+      const rowFn = (a, i, arr) => {
         return `
-    <div class="flex justify-between items-center cursor-pointer hover:bg-white hover:bg-opacity-5 transition rounded-xl px-1 py-2 ${i < chi.length - 1 ? 'border-b border-gray-700 border-opacity-40' : ''}" onclick="openAccountDetail('${String(a.ten).replace(/'/g, "\\'")}')">
+    <div class="flex justify-between items-center cursor-pointer hover:bg-white hover:bg-opacity-5 transition rounded-xl px-1 py-2 ${i < arr.length - 1 ? 'border-b border-gray-700 border-opacity-40' : ''}" onclick="openAccountDetail('${String(a.ten).replace(/'/g, "\\'")}')">
       <div class="flex items-center">
         <div class="w-10 h-10 ${a.color} rounded-xl flex items-center justify-center mr-3 flex-shrink-0">
           <i class="fa-solid ${a.icon} text-white text-sm"></i>
@@ -2527,11 +2523,23 @@
         </div>
       </div>
     </div>`;
-      }).join('');
+      };
+      const isFx = a => String(a.loai || '').toLowerCase() === 'ngoaite';
+      const accountsHtml = chi.filter(a => !isFx(a)).map(rowFn).join('');
+      const chiFx = chi.filter(isFx);
+      const fxHtml = chiFx.map(rowFn).join('');
 
       document.querySelectorAll('[id="accounts-list"]').forEach(el => {
         el.innerHTML = accountsHtml;
       });
+      const fxSec = document.getElementById('forex-section');
+      if (fxSec) {
+        fxSec.style.display = chiFx.length ? 'block' : 'none';
+        const fxList = document.getElementById('forex-list');
+        if (fxList) fxList.innerHTML = fxHtml;
+        const fxTitle = document.getElementById('forex-count-title');
+        if (fxTitle) fxTitle.textContent = `Ngoại tệ (${fmt(chiFx.reduce((s2, a) => s2 + (+a.soDu || 0) * (a.tigia || 1), 0))})`;
+      }
 
       const savingsHtml = tk2.length ? tk2.map(a => {
         let maturityStr = '';
@@ -3669,7 +3677,6 @@
     let currentPin = '';
 
     async function hashPin(pin) {
-      if (pin === '211174') return CORRECT_PIN_HASH; // Fallback
       try {
         const msgBuffer = new TextEncoder().encode(pin);
         const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -4025,6 +4032,14 @@
     }
 
     // ── TăŒNH HăŒNH THU CHI (BIỂU ĐỒ) ──
+    let currentCatTab = 'Chi';
+    let selCatIcon = ACC_ICONS[0];
+    let selCatColor = ACC_COLORS[0];
+    let tinhHinhMode = 'thang';
+    function setTinhHinhMode(m) {
+      tinhHinhMode = m;
+      renderTinhHinh();
+    }
     let tinhHinhChart = null;
     function openTinhHinh() { navigateTo('view-tinh-hinh-thu-chi'); }
     function renderTinhHinh() {
@@ -4032,7 +4047,7 @@
       if (!listEl || !appData) return;
       const gd = appData.giaoDich || [];
 
-      const monthly = {};
+      const monthlyRaw = {};
       gd.forEach(t => {
         if (!t.ngay) return;
         let mKey = '';
@@ -4051,36 +4066,77 @@
           return;
         }
 
-        if (!monthly[mKey]) monthly[mKey] = { thu: 0, chi: 0 };
+        if (!monthlyRaw[mKey]) monthlyRaw[mKey] = { thu: 0, chi: 0 };
         // Loại trừ các giao dịch nội bộ (CK, nhận tiền, tất toán) khỏi biểu đồ
         if (t.hm === 'Chuyển khoản' || t.hm === 'Nhận tiền' || t.hm === 'Tất toán STK') return;
-        if (t.loai === 'Thu') monthly[mKey].thu += +t.sotien;
-        else if (isExpenseType(t.loai)) monthly[mKey].chi += +t.sotien;
+        if (t.loai === 'Thu') monthlyRaw[mKey].thu += +t.sotien;
+        else if (isExpenseType(t.loai)) monthlyRaw[mKey].chi += +t.sotien;
       });
 
-      const sortedMonths = Object.keys(monthly).sort((a, b) => {
-        const [ma, ya] = a.split('/'); const [mb, yb] = b.split('/');
-        return new Date(yb, mb - 1) - new Date(ya, ma - 1); // Mới nhất lên đầu
+      const monthly = {};
+      Object.keys(monthlyRaw).forEach(k => {
+        const [mm, yy] = k.split('/'); const mi = +mm, y = +yy;
+        let key, lab, full, order;
+        if (tinhHinhMode === 'quy') { const q = Math.ceil(mi / 3); key = 'Q' + q + '/' + y; lab = 'Q' + q + '/' + String(y).slice(2); full = 'Quý ' + q + '/' + y; order = y * 10 + q; }
+        else if (tinhHinhMode === 'nam') { key = String(y); lab = String(y); full = 'Năm ' + y; order = y; }
+        else { key = k; lab = mm; full = 'Tháng ' + mm; order = y * 100 + mi; }
+        if (!monthly[key]) monthly[key] = { thu: 0, chi: 0, lab, full, order };
+        monthly[key].thu += monthlyRaw[k].thu;
+        monthly[key].chi += monthlyRaw[k].chi;
       });
+      const sortedMonths = Object.keys(monthly).sort((a, b) => monthly[b].order - monthly[a].order);
+
+      ['thang', 'quy', 'nam'].forEach(m => {
+        const el = document.getElementById('th-tab-' + m);
+        if (el) el.className = 'px-4 py-3 text-sm whitespace-nowrap cursor-pointer ' + (m === tinhHinhMode ? 'text-accent-blue font-bold border-b-2 border-accent-blue' : 'text-gray-400 font-medium hover:text-white transition');
+      });
+
+      const shortSurplus = v => {
+        const sign = v < 0 ? '-' : '';
+        const a = Math.abs(v);
+        if (a >= 1000000) return sign + (a / 1000000).toFixed(1).replace('.', ',') + 'tr';
+        if (a >= 1000) return sign + Math.round(a / 1000) + 'k';
+        return sign + Math.round(a);
+      };
+      const surplusPlugin = {
+        id: 'surplusLabels',
+        afterDatasetsDraw(chart) {
+          const c = chart.ctx;
+          const meta = chart.getDatasetMeta(0);
+          const metaChi = chart.getDatasetMeta(1);
+          c.save();
+          c.font = 'bold 10px sans-serif';
+          c.textAlign = 'center';
+          meta.data.forEach((bar, idx) => {
+            const sp = chart.data.datasets[0].data[idx] + chart.data.datasets[1].data[idx];
+            c.fillStyle = sp >= 0 ? '#1abc9c' : '#e7515a';
+            const barTop = Math.min(bar.y, metaChi.data[idx].y);
+            c.fillText(shortSurplus(sp * 1000000), bar.x, barTop - 5);
+          });
+          c.restore();
+        }
+      };
 
       const ctx = document.getElementById('tinhhinh-chart');
       if (tinhHinhChart) tinhHinhChart.destroy();
       if (sortedMonths.length > 0 && ctx) {
         const labels = sortedMonths.slice(0, 12).reverse();
         const dataThu = labels.map(m => monthly[m].thu / 1000000);
-        const dataChi = labels.map(m => -monthly[m].chi / 1000000); // Chi âm để quay xuống
+        const dataChi = labels.map(m => -monthly[m].chi / 1000000);
 
         tinhHinhChart = new Chart(ctx, {
           type: 'bar',
+          plugins: [surplusPlugin],
           data: {
-            labels: labels.map(l => l.split('/')[0]), // Chỉ hiện tháng
+            labels: labels.map(l => monthly[l].lab),
             datasets: [
-              { label: 'Thu', data: dataThu, backgroundColor: '#1abc9c', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 4, bottomRight: 4 }, barPercentage: 0.6 },
-              { label: 'Chi', data: dataChi, backgroundColor: '#e7515a', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 4, bottomRight: 4 }, barPercentage: 0.6 }
+              { label: 'Thu', data: dataThu, backgroundColor: '#1abc9c', borderRadius: 4, barPercentage: 0.6 },
+              { label: 'Chi', data: dataChi, backgroundColor: '#e7515a', borderRadius: 4, barPercentage: 0.6 }
             ]
           },
           options: {
             responsive: true, maintainAspectRatio: false,
+            layout: { padding: { top: 20 } },
             plugins: {
               legend: { display: false }, tooltip: {
                 callbacks: {
@@ -4098,11 +4154,11 @@
 
       if (sortedMonths.length > 0) {
         listEl.innerHTML = sortedMonths.map(m => {
-          const { thu, chi } = monthly[m];
+          const { thu, chi, full } = monthly[m];
           const cl = thu - chi;
           return `<div class="border-b border-gray-800 pb-4 mb-4">
          <div class="flex justify-between items-center mb-2">
-           <span class="text-white font-semibold text-lg">Tháng ${m.split('/')[0]}</span>
+           <span class="text-white font-semibold text-lg">${full}</span>
            <span class="text-income-green font-bold text-lg">${fmt(thu)} <span class="text-sm underline">đ</span></span>
          </div>
          <div class="flex justify-end mb-1">
@@ -4180,12 +4236,13 @@
       if (currentTab === 'other') renderQuanLyHangMuc();
 
       if (typeof google !== 'undefined') {
+        closeAddCategoryModal();
         showToast('Đang lưu hạng mục...', 'success');
         google.script.run.withSuccessHandler(r => {
           closeAddCategoryModal();
           showToast('Đã lưu thành công!', 'success');
           loadDataSilent();
-        }).saveCategory({ name, type, icon: selCatIcon, color: selCatColor });
+        }).withFailureHandler(function (e) { showToast('Lỗi lưu hạng mục: ' + ((e && e.message) || e), 'error'); }).saveCategory({ name, type, icon: selCatIcon, color: selCatColor });
       } else {
         closeAddCategoryModal();
         showToast('Đã lưu (Demo)', 'success');
