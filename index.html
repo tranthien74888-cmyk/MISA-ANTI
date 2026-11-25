@@ -2166,6 +2166,7 @@
         let cached = localStorage.getItem('misa_app_data_cache');
         if (cached) {
           appData = JSON.parse(cached);
+          syncCategoriesFromAppData();
           if (appData && appData.taiKhoan) renderAll();
         }
       } catch (e) { }
@@ -2184,6 +2185,23 @@
     // Lấy thông tin hạng mục thông minh (bỏ qua hoa thường, lỗi font)
     function normalizeText(str) {
       return String(str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    }
+
+    function syncCategoriesFromAppData() {
+      if (appData && appData.danhMuc && appData.danhMuc.length > 0) {
+        appData.danhMuc.forEach(c => {
+          const isThu = c.type === 'Thu' || String(c.type).toLowerCase() === 'thu';
+          const targetList = isThu ? CATS.Thu : CATS.Chi;
+          const target = normalizeText(c.name);
+          const existing = targetList.find(x => normalizeText(x.name) === target);
+          if (existing) {
+            if (c.icon && c.icon !== 'fa-icons' && c.icon !== 'fa-box') existing.icon = c.icon;
+            if (c.color && c.color !== 'bg-gray-500' && c.color !== 'bg-blue-500') existing.color = c.color;
+          } else {
+            targetList.push({ name: c.name, icon: c.icon || 'fa-box', color: c.color || 'bg-gray-500', fav: c.fav !== false });
+          }
+        });
+      }
     }
 
     function getCategoryInfo(hm, loai) {
@@ -2232,18 +2250,7 @@
         const el = document.getElementById('user-greeting');
         if (el) el.innerHTML = 'Xin chă o 👋 <span class="bg-blue-600 text-white text-[9px] px-1.5 py-0.5 rounded-full ml-1 font-bold">v2.0</span>';
       }
-      if (appData.danhMuc && appData.danhMuc.length > 0) {
-        appData.danhMuc.forEach(c => {
-          const targetList = c.type === 'Thu' ? CATS.Thu : CATS.Chi;
-          const existing = targetList.find(x => x.name === c.name);
-          if (existing) {
-            if (c.icon && c.icon !== 'fa-icons' && c.icon !== 'fa-box') existing.icon = c.icon;
-            if (c.color && c.color !== 'bg-gray-500' && c.color !== 'bg-blue-500') existing.color = c.color;
-          } else {
-            targetList.push({ name: c.name, icon: c.icon || 'fa-box', color: c.color || 'bg-gray-500', fav: c.fav });
-          }
-        });
-      }
+      syncCategoriesFromAppData();
 
       // Enrich giaoDich with rich icons from CATS
       if (appData.giaoDich) {
@@ -3503,19 +3510,7 @@
             }
 
             appData = newData;
-
-            if (appData.danhMuc && appData.danhMuc.length > 0) {
-              appData.danhMuc.forEach(c => {
-                const targetList = c.type === 'Thu' ? CATS.Thu : CATS.Chi;
-                const existing = targetList.find(x => x.name === c.name);
-                if (existing) {
-                  if (c.icon && c.icon !== 'fa-icons' && c.icon !== 'fa-box') existing.icon = c.icon;
-                  if (c.color && c.color !== 'bg-gray-500' && c.color !== 'bg-blue-500') existing.color = c.color;
-                } else {
-                  targetList.push({ name: c.name, icon: c.icon || 'fa-box', color: c.color || 'bg-gray-500', fav: c.fav });
-                }
-              });
-            }
+            syncCategoriesFromAppData();
 
             if (appData.giaoDich) {
               appData.giaoDich.forEach(t => {
@@ -4272,22 +4267,37 @@
       if (!name) return showToast('Nhập tên hạng mục', 'error');
 
       if (!CATS[type]) CATS[type] = [];
-      if (CATS[type].some(c => c.name.toLowerCase() === name.toLowerCase())) {
+      const target = normalizeText(name);
+      if (CATS[type].some(c => normalizeText(c.name) === target)) {
         return showToast('Hạng mục đã tồn tại!', 'error');
       }
 
-      CATS[type].push({ name, icon: selCatIcon, color: selCatColor, fav: true });
-      renderCategories(document.getElementById('transaction-type-select')?.value || 'Chi');
-      if (currentTab === 'other') renderQuanLyHangMuc();
+      const newCatObj = { name, icon: selCatIcon, color: selCatColor, type, fav: true };
+      CATS[type].push(newCatObj);
 
-      if (typeof google !== 'undefined') {
+      // Cập nhật appData.danhMuc và lưu cache ngay lập tức (Multi-layer Persistence)
+      if (!appData) appData = { giaoDich: [], taiKhoan: [], hanMuc: [], danhMuc: [] };
+      if (!appData.danhMuc) appData.danhMuc = [];
+      const existDmIdx = appData.danhMuc.findIndex(x => normalizeText(x.name) === target && x.type === type);
+      if (existDmIdx > -1) appData.danhMuc[existDmIdx] = newCatObj;
+      else appData.danhMuc.push(newCatObj);
+      try { localStorage.setItem('misa_app_data_cache', JSON.stringify(appData)); } catch (e) { }
+
+      renderCategories(document.getElementById('transaction-type-select')?.value || 'Chi');
+      renderQuanLyHangMuc();
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
         closeAddCategoryModal();
-        showToast('Đang lưu hạng mục...', 'success');
-        google.script.run.withSuccessHandler(r => {
-          closeAddCategoryModal();
-          showToast('Đã lưu thành công!', 'success');
-          loadDataSilent();
-        }).withFailureHandler(function (e) { showToast('Lỗi lưu hạng mục: ' + ((e && e.message) || e), 'error'); }).saveCategory({ name, type, icon: selCatIcon, color: selCatColor });
+        showToast('Đang lưu hạng mục...', 'info');
+        google.script.run
+          .withSuccessHandler(r => {
+            showToast('Đã lưu thành công!', 'success');
+            loadDataSilent();
+          })
+          .withFailureHandler(function (e) {
+            showToast('Lỗi lưu hạng mục: ' + ((e && e.message) || e), 'error');
+          })
+          .saveCategory({ name, type, icon: selCatIcon, color: selCatColor });
       } else {
         closeAddCategoryModal();
         showToast('Đã lưu (Demo)', 'success');
@@ -4296,17 +4306,33 @@
     function deleteCategory(name) {
       if (!confirm(`Xóa hạng mục ${name}?`)) return;
 
+      const target = normalizeText(name);
       ['Chi', 'Thu'].forEach(t => {
         if (CATS[t]) {
-          const idx = CATS[t].findIndex(c => c.name === name);
+          const idx = CATS[t].findIndex(c => normalizeText(c.name) === target);
           if (idx > -1) CATS[t].splice(idx, 1);
         }
       });
-      renderCategories(document.getElementById('transaction-type-select')?.value || 'Chi');
-      if (currentTab === 'other') renderQuanLyHangMuc();
 
-      if (typeof google !== 'undefined') {
-        google.script.run.withSuccessHandler(r => loadDataSilent()).deleteCategory(name);
+      // Cập nhật appData.danhMuc và lưu cache
+      if (appData && appData.danhMuc) {
+        appData.danhMuc = appData.danhMuc.filter(c => normalizeText(c.name) !== target);
+        try { localStorage.setItem('misa_app_data_cache', JSON.stringify(appData)); } catch (e) { }
+      }
+
+      renderCategories(document.getElementById('transaction-type-select')?.value || 'Chi');
+      renderQuanLyHangMuc();
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(r => {
+            showToast('Đã xóa hạng mục!', 'success');
+            loadDataSilent();
+          })
+          .withFailureHandler(function (e) {
+            showToast('Lỗi xóa hạng mục: ' + ((e && e.message) || e), 'error');
+          })
+          .deleteCategory(name);
       }
     }
 
