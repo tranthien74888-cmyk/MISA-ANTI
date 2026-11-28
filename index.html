@@ -2290,6 +2290,28 @@
     // ── FORMAT TIỀN ──
     function fmt(n) { return Number(n).toLocaleString('en-US') + ' đ'; }
 
+    function getChartTextColor() {
+      const isLight = document.body.classList.contains('theme-white') || document.body.classList.contains('theme-silver');
+      return isLight ? '#1f2937' : '#e5e7eb';
+    }
+    function getChartSubTextColor() {
+      const isLight = document.body.classList.contains('theme-white') || document.body.classList.contains('theme-silver');
+      return isLight ? '#4b5563' : '#9ca3af';
+    }
+    function formatChartBarValue(v) {
+      if (v === null || v === undefined || v === '') return '';
+      const num = Number(v);
+      if (isNaN(num) || num === 0) return '';
+      const abs = Math.abs(num);
+      const sign = num < 0 ? '-' : '';
+      if (abs >= 1000000) {
+        return sign + (abs / 1000000).toFixed(1) + 'tr';
+      } else if (abs >= 1000) {
+        return sign + Math.round(abs / 1000) + 'k';
+      }
+      return sign + Math.round(abs);
+    }
+
     // ── NORMALIZE LOẠI ──
     function isExpenseType(loai) { const s = String(loai || '').trim().toLowerCase(); return s === 'chi' || s.includes('chi'); }
     function isIncomeType(loai) { return String(loai || '').toLowerCase() === 'thu'; }
@@ -2382,10 +2404,10 @@
           c.save();
           c.font = 'bold 9px sans-serif';
           c.textAlign = 'center';
-          c.fillStyle = '#e5e7eb';
+          c.fillStyle = getChartTextColor();
           chart.getDatasetMeta(0).data.forEach((bar, idx) => {
             const v = chart.data.datasets[0].data[idx];
-            c.fillText(v >= 1000000 ? (v / 1000000).toFixed(1) + 'tr' : Math.round(v / 1000) + 'k', bar.x, bar.y - 4);
+            c.fillText(formatChartBarValue(v), bar.x, bar.y - 4);
           });
           c.restore();
         }
@@ -2401,7 +2423,7 @@
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.label + ': ' + fmt(c.raw) } } },
           maintainAspectRatio: false,
           layout: { padding: { top: 14 } },
-          scales: { x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 }, maxRotation: 60, minRotation: 45, autoSkip: false } }, y: { display: false, beginAtZero: true } }
+          scales: { x: { grid: { display: false }, ticks: { color: getChartSubTextColor(), font: { size: 9 }, maxRotation: 60, minRotation: 45, autoSkip: false } }, y: { display: false, beginAtZero: true } }
         }
       });
 
@@ -4131,13 +4153,6 @@
         if (el) el.className = 'px-4 py-3 text-sm whitespace-nowrap cursor-pointer ' + (m === tinhHinhMode ? 'text-accent-blue font-bold border-b-2 border-accent-blue' : 'text-gray-400 font-medium hover:text-white transition');
       });
 
-      const shortSurplus = v => {
-        const sign = v < 0 ? '-' : '';
-        const a = Math.abs(v);
-        if (a >= 1000000) return sign + (a / 1000000).toFixed(1) + 'tr';
-        if (a >= 1000) return sign + Math.round(a / 1000) + 'k';
-        return sign + Math.round(a);
-      };
       const surplusPlugin = {
         id: 'surplusLabels',
         afterDatasetsDraw(chart) {
@@ -4151,7 +4166,7 @@
             const sp = chart.data.datasets[0].data[idx] + chart.data.datasets[1].data[idx];
             c.fillStyle = sp >= 0 ? '#1abc9c' : '#e7515a';
             const barTop = Math.min(bar.y, metaChi.data[idx].y);
-            c.fillText(shortSurplus(sp * 1000000), bar.x, barTop - 5);
+            c.fillText(formatChartBarValue(sp * 1000000), bar.x, barTop - 5);
           });
           c.restore();
         }
@@ -4185,8 +4200,8 @@
               }
             },
             scales: {
-              x: { stacked: true, grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } },
-              y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 10 } } }
+              x: { stacked: true, grid: { display: false }, ticks: { color: getChartSubTextColor(), font: { size: 10 } } },
+              y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: getChartSubTextColor(), font: { size: 10 } } }
             }
           }
         });
@@ -6260,11 +6275,10 @@
           chart.getDatasetMeta(0).data.forEach((bar, index) => {
             const val = values[index];
             if (!val) return;
-            let text = fmt(val).replace(' đ', '').trim();
-            // Nếu số quá dài, rút gọn thành định dạng k (nghìn) hoặc tr (triệu) để đỡ tràn, hoặc giữ nguyên font nhỏ
+            const text = formatChartBarValue(val);
             ctx.save();
             ctx.font = 'bold 10px sans-serif';
-            ctx.fillStyle = '#9ca3af';
+            ctx.fillStyle = getChartTextColor();
             ctx.textAlign = 'center';
             ctx.fillText(text, bar.x, bar.y - 6);
             ctx.restore();
@@ -6300,8 +6314,8 @@
             }
           },
           scales: {
-            x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } },
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 10 }, callback: v => (v + 'tr') } }
+            x: { grid: { display: false }, ticks: { color: getChartSubTextColor(), font: { size: 10 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: getChartSubTextColor(), font: { size: 10 }, callback: v => (v + 'tr') } }
           }
         }
       });
@@ -6338,6 +6352,13 @@
         document.body.classList.add('theme-' + theme);
       }
       localStorage.setItem('misa_theme', theme);
+      if (typeof renderChart === 'function') renderChart();
+      if (typeof renderTinhHinh === 'function' && document.getElementById('view-tinh-hinh-thu-chi') && !document.getElementById('view-tinh-hinh-thu-chi').classList.contains('hidden')) {
+        renderTinhHinh();
+      }
+      if (typeof theoDoiSelectedCat !== 'undefined' && theoDoiSelectedCat && document.getElementById('modal-theodoi-chi') && !document.getElementById('modal-theodoi-chi').classList.contains('hidden')) {
+        renderTheoDoiChart(theoDoiSelectedCat);
+      }
     };
 
     function loadSavedTheme() {
